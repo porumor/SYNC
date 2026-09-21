@@ -1939,7 +1939,7 @@ async function executeTrade(plan){
       body: JSON.stringify({
         symbol: plan.symbol,
         action: plan.type === "bullish" ? "buy" : "sell",
-        volume: plan.volume,
+        volume: Number(plan.volume.toFixed(2)),
         sl: Number(plan.sl.toFixed(plan.symbol.includes("AUD") ? 5 : (plan.symbol.includes("BTC") ? 1 : 2))),
         tp: Number(plan.tp.toFixed(plan.symbol.includes("AUD") ? 5 : (plan.symbol.includes("BTC") ? 1 : 2))),
         comment: plan.comment
@@ -1985,7 +1985,7 @@ function deployLocalOrder(plan){
     entry: plan.entry,
     tp: plan.tp,
     sl: plan.sl,
-    volume: plan.volume,
+    volume: Number(plan.volume.toFixed(2)),
     open_time: Math.floor(Date.now() / 1000),
     tf: plan.tf,
     reason: plan.reason,
@@ -2242,7 +2242,14 @@ btnRecoveryAi.addEventListener("click", async () => {
       setTimeout(() => {
         const currentPrice = lastPrice || (currentMt5Symbol.includes("BTC") ? 81500.0 : (currentMt5Symbol.includes("AUD") ? 0.92500 : 2650.0));
         const atr = calculateATR(candles.length - 1, 14);
-        const recoveryLot = resolveLotSize(atr) * 1.5;
+        
+        // แก้ไข: ปัดเศษทศนิยม 2 ตำแหน่งให้ถูกต้องตามเกณฑ์ MT5
+        const baseLot = resolveLotSize(atr);
+        let calculatedLot = Math.round(baseLot * 1.5 * 100) / 100;
+        if (calculatedLot <= baseLot) {
+          calculatedLot = Math.round((baseLot + 0.01) * 100) / 100;
+        }
+        const recoveryLot = Number(calculatedLot.toFixed(2));
 
         const isBtc = currentMt5Symbol.includes("BTC");
         const isAud = currentMt5Symbol.includes("AUD");
@@ -2283,7 +2290,7 @@ async function executeRecoveryOrderSafely(plan) {
       body: JSON.stringify({
         symbol: plan.symbol,
         action: plan.type === "bullish" ? "buy" : "sell",
-        volume: plan.volume,
+        volume: Number(plan.volume.toFixed(2)),
         sl: Number(plan.sl.toFixed(plan.symbol.includes("AUD") ? 5 : (plan.symbol.includes("BTC") ? 1 : 2))),
         tp: Number(plan.tp.toFixed(plan.symbol.includes("AUD") ? 5 : (plan.symbol.includes("BTC") ? 1 : 2))),
         comment: plan.comment
@@ -2771,7 +2778,6 @@ function priceToY(price, minPrice, maxPrice, top, bottom){
   return bottom - ((price - minPrice) / span) * (bottom - top);
 }
 
-// ปรับปรุงการวาดลูกศรเพื่อไม่ให้ลูกศรหายแม้เวลาของเซิร์ฟเวอร์จะมีความคลาดเคลื่อน
 function drawOrderArrow(trade, plot, candleWidth, top, bottom){
   if(!trade || !candles.length || !trade.open_time) return;
 
@@ -2781,7 +2787,6 @@ function drawOrderArrow(trade, plot, candleWidth, top, bottom){
   let targetIndex = -1;
   let minDiff = Infinity;
 
-  // ค้นหาแท่งเทียนที่ตรงหรือใกล้เคียงกับเวลาเปิดออเดอร์ที่สุด
   for(let i = 0; i < candles.length; i++){
     if(orderSec >= candles[i].time && orderSec < candles[i].time + timeframe){
       targetIndex = i;
