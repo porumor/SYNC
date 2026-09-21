@@ -272,7 +272,18 @@ button{
   flex-shrink: 0;
 }
 
-.btn-calc-order{ width:125px; }
+.btn-calc-order{ width:135px; }
+.btn-calc-order.active-running {
+  border-color: #059669 !important;
+  color: #059669 !important;
+  animation: borderBlinkGreen 1.5s infinite;
+}
+
+@keyframes borderBlinkGreen {
+  0%, 100% { border-color: #059669; }
+  50% { border-color: transparent; }
+}
+
 .btn-clear{ width:90px; }
 .btn-reset{ width:86px; }
 
@@ -386,6 +397,7 @@ button{
 }
 .action-badge.bullish{border-color:#00897b;color:#00897b}
 .action-badge.bearish{border-color:#e53935;color:#e53935}
+.action-badge.autopilot{border-color:#059669;color:#059669;background:rgba(5,150,105,0.08);}
 
 .state-badge{
   flex:1;
@@ -614,6 +626,49 @@ button{
   background:var(--text-main);
   color:var(--bg-primary);
   border-color:var(--text-main);
+}
+
+/* Modal เลือกโหมด Calculate (Single vs Auto-Pilot) */
+.calc-mode-modal{
+  width:340px;
+  background:var(--modal-bg);
+  border:1px solid var(--border-color);
+  border-radius:8px;
+  padding:18px;
+  box-shadow:0 20px 48px rgba(0,0,0,0.4);
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  transform:scale(0.96);
+  transition:transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.confirm-overlay.active .calc-mode-modal{ transform:scale(1); }
+
+.calc-mode-card{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px 14px;
+  border-radius:6px;
+  background:var(--panel-item-bg);
+  border:1px solid var(--border-color);
+  cursor:pointer;
+  transition:all 0.15s ease;
+}
+.calc-mode-card:hover{
+  background:var(--card-hover);
+  border-color:var(--text-sub);
+}
+.calc-mode-title{
+  font-size:12px;
+  font-weight:700;
+  color:var(--text-main);
+}
+.calc-mode-desc{
+  font-size:10px;
+  font-weight:500;
+  color:var(--text-sub);
+  margin-top:2px;
 }
 
 .pos-modal-overlay{
@@ -1025,6 +1080,7 @@ button{
   <div class="custom-toast" id="center-toast"></div>
 </div>
 
+<!-- Modal ยืนยันทั่วไป -->
 <div class="confirm-overlay" id="confirm-overlay">
   <div class="confirm-modal">
     <div class="confirm-title" id="confirm-modal-title">CONFIRMATION</div>
@@ -1032,6 +1088,33 @@ button{
     <div class="confirm-actions">
       <button class="confirm-btn" id="confirm-modal-cancel">CANCEL</button>
       <button class="confirm-btn btn-confirm" id="confirm-modal-ok">CONFIRM</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal สำหรับเลือกโหมด Calculate Order (Single vs Auto-Pilot) -->
+<div class="confirm-overlay" id="calc-choice-overlay">
+  <div class="calc-mode-modal">
+    <div class="confirm-title">Select Execution Protocol</div>
+    
+    <div class="calc-mode-card" id="btn-choice-single">
+      <div>
+        <div class="calc-mode-title">Single Execution</div>
+        <div class="calc-mode-desc">วิเคราะห์และส่งคำสั่งเพียงครั้งเดียว</div>
+      </div>
+      <span style="font-size:16px;color:var(--text-sub);">➔</span>
+    </div>
+
+    <div class="calc-mode-card" id="btn-choice-autopilot">
+      <div>
+        <div class="calc-mode-title" style="color:#059669;">Auto-Pilot Engine</div>
+        <div class="calc-mode-desc">รันวิเคราะห์และออกออเดอร์ต่อเนื่องอัตโนมัติ</div>
+      </div>
+      <span style="font-size:16px;color:#059669;">➔</span>
+    </div>
+
+    <div class="confirm-actions" style="margin-top:2px;">
+      <button class="confirm-btn" id="btn-choice-cancel">CANCEL</button>
     </div>
   </div>
 </div>
@@ -1133,6 +1216,7 @@ const BRIDGE_API = "https://objectives-numerical-undergraduate-ross.trycloudflar
 let ws = null;
 let isMT5Connected = false;
 let isCheckingConnection = false;
+let isAutoPilotMode = false; // ตัวแปรคุมสถานะ Auto-Pilot รันยาว
 let timeframe = 60;
 let showProjectedPL = false;
 
@@ -1233,6 +1317,59 @@ confirmModalOk.addEventListener("click", () => {
   }
   pendingConfirmAction = null;
 });
+
+/* Modal จัดการโหมด Calculate */
+const calcChoiceOverlay = document.getElementById("calc-choice-overlay");
+const btnChoiceSingle = document.getElementById("btn-choice-single");
+const btnChoiceAutopilot = document.getElementById("btn-choice-autopilot");
+const btnChoiceCancel = document.getElementById("btn-choice-cancel");
+
+btnChoiceCancel.addEventListener("click", () => {
+  calcChoiceOverlay.classList.remove("active");
+});
+
+btnChoiceSingle.addEventListener("click", () => {
+  calcChoiceOverlay.classList.remove("active");
+  const currentPrice = lastPrice || (currentMt5Symbol.includes("BTC") ? 81500.0 : (currentMt5Symbol.includes("AUD") ? 0.92500 : 2650.0));
+  const plan = evaluateInstitutionalPlan(currentPrice);
+  if(plan){
+    if(isMT5Connected){
+      executeTrade(plan);
+    } else {
+      deployLocalOrder(plan);
+    }
+  }
+});
+
+btnChoiceAutopilot.addEventListener("click", () => {
+  calcChoiceOverlay.classList.remove("active");
+  isAutoPilotMode = true;
+  updateAutoPilotUI();
+  showCenterToast("AUTO-PILOT ACTIVE: CONTINUOUS RUNNING", 2200, "success");
+  
+  if (!activeMT5Trade) {
+    const currentPrice = lastPrice || (currentMt5Symbol.includes("BTC") ? 81500.0 : (currentMt5Symbol.includes("AUD") ? 0.92500 : 2650.0));
+    checkInstitutionalSetup(currentPrice);
+  }
+});
+
+function updateAutoPilotUI() {
+  if (isAutoPilotMode) {
+    calcOrderBtn.textContent = "Stop Auto-Pilot";
+    calcOrderBtn.classList.add("active-running");
+    if (!activeMT5Trade) {
+      signalEl.textContent = "AUTO-PILOT";
+      signalEl.className = "action-badge autopilot";
+      ticketBadgeEl.textContent = "CONTINUOUS";
+    }
+  } else {
+    calcOrderBtn.textContent = "Calculate Order";
+    calcOrderBtn.classList.remove("active-running");
+    if (!activeMT5Trade) {
+      showScanning(true);
+    }
+  }
+}
 
 const symModalOverlay = document.getElementById("sym-modal-overlay");
 const btnOpenSymModal = document.getElementById("btn-open-sym-modal");
@@ -1689,7 +1826,7 @@ function handleHistory(data){
       renderActiveTrade(activeMT5Trade);
     } else {
       showScanning();
-      if (isMT5Connected) {
+      if (isAutoPilotMode) {
         checkInstitutionalSetup(lastPrice);
       }
     }
@@ -1787,7 +1924,7 @@ function handleTick(data){
 
   if(activeMT5Trade && activeMT5Trade.isLocal){
     checkLocalTradeExit(price);
-  } else if (isMT5Connected) {
+  } else if (isAutoPilotMode) {
     checkInstitutionalSetup(price);
   }
 
@@ -1912,7 +2049,7 @@ function evaluateInstitutionalPlan(currentPrice){
 }
 
 function checkInstitutionalSetup(currentPrice){
-  if (!isMT5Connected || !checkMarketOpen().isOpen) return;
+  if (!checkMarketOpen().isOpen) return;
   if (activeMT5Trade || isExecutingTrade || candles.length < 60) return;
 
   const plan = evaluateInstitutionalPlan(currentPrice);
@@ -2027,6 +2164,11 @@ function checkLocalTradeExit(currentPrice){
     showScanning(true);
     showCenterToast(outcomeText, 2400, isWin ? "success" : "error");
     draw();
+
+    // หากเปิดโหมด Auto-Pilot อยู่ ให้สแกนหาจังหวะเทรดไม้ต่อไปทันที
+    if (isAutoPilotMode) {
+      setTimeout(() => { checkInstitutionalSetup(currentPrice); }, 1200);
+    }
   }
 }
 
@@ -2111,6 +2253,11 @@ function startMT5RealtimeSync(){
             showScanning(true);
             showCenterToast("POSITION CLOSED IN MT5", 1800, "info");
             draw();
+
+            // หากเปิด Auto-Pilot ให้วิเคราะห์ต่อเพื่อเข้าออเดอร์ใหม่ทันที
+            if (isAutoPilotMode) {
+              setTimeout(() => { checkInstitutionalSetup(lastPrice); }, 1500);
+            }
           }
         }
       }
@@ -2142,9 +2289,15 @@ function showScanning(force = false){
     signalEl.className = "action-badge";
     ticketBadgeEl.textContent = "SESSION CLOSED";
   } else {
-    signalEl.textContent = "SCANNING";
-    signalEl.className = "action-badge";
-    ticketBadgeEl.textContent = isMT5Connected ? "AUTO SCAN" : "STANDBY";
+    if (isAutoPilotMode) {
+      signalEl.textContent = "AUTO-PILOT";
+      signalEl.className = "action-badge autopilot";
+      ticketBadgeEl.textContent = "CONTINUOUS";
+    } else {
+      signalEl.textContent = "SCANNING";
+      signalEl.className = "action-badge";
+      ticketBadgeEl.textContent = isMT5Connected ? "AUTO SCAN" : "STANDBY";
+    }
   }
   entryEl.textContent = "--";
   tpEl.textContent = "--";
@@ -2198,7 +2351,29 @@ document.querySelectorAll(".tf").forEach(btn => {
 });
 
 /* =========================================================
-   ADVANCED CRISIS RECOVERY MATRIX (MULTI-VARIABLE ANALYTICS)
+   ปุ่ม Calculate Order: ปรับให้เลือกระหว่างครั้งเดียวหรือรันยาว
+========================================================= */
+calcOrderBtn.addEventListener("click", () => {
+  // หากกำลังรัน Auto-Pilot อยู่ ให้คลิกเพื่อหยุดรัน
+  if (isAutoPilotMode) {
+    isAutoPilotMode = false;
+    updateAutoPilotUI();
+    showCenterToast("AUTO-PILOT STOPPED", 1800, "info");
+    return;
+  }
+
+  // หากมีออเดอร์เปิดอยู่แล้ว
+  if(activeMT5Trade){
+    showCenterToast("ACTIVE POSITION RUNNING", 1800, "error");
+    return;
+  }
+
+  // เปิด Modal ทางเลือก
+  calcChoiceOverlay.classList.add("active");
+});
+
+/* =========================================================
+   ADVANCED CRISIS RECOVERY MATRIX
 ========================================================= */
 btnRecoveryAi.addEventListener("click", async () => {
   let currentPL = 0;
@@ -2265,31 +2440,24 @@ btnRecoveryAi.addEventListener("click", async () => {
         const currentPrice = lastPrice || c.close;
         const atr = calculateATR(lastIdx, 14);
         const rsi = calculateRSI(lastIdx, 14);
-        const ema20 = calculateEMA(lastIdx, 20) || currentPrice;
         const ema50 = calculateEMA(lastIdx, 50) || currentPrice;
 
-        // คำนวณฝั่งหลักของออเดอร์เดิมที่กำลังติดลบ
         const primaryOriginalType = (currentLossPositions[0].type.toUpperCase() === "BUY" || currentLossPositions[0].type === "bullish") ? "bullish" : "bearish";
 
-        // ตรวจสอบโมเมนตัมแนวโน้มปัจจุบันว่าแข็งแกร่งหรือไม่
         const isStrongTrendingAgainst = (primaryOriginalType === "bullish" && currentPrice < ema50 && rsi < 42) ||
                                        (primaryOriginalType === "bearish" && currentPrice > ema50 && rsi > 58);
 
-        // 1. ตัดสินใจเลือกกลยุทธ์: HEDGE (ล็อกพอร์ต) หรือ REVERSE AVERAGING (ถัวแก้ทางคุ้มทุน)
         let recoverySide = primaryOriginalType;
         let recoveryComment = "AI RECOVERY DCA";
 
         if (isStrongTrendingAgainst && rsi > 28 && rsi < 72) {
-          // หากกราฟหลุดทางแรง ให้สวิตช์มาทำ Counter-Hedge เพื่อล็อกไม่ให้พอร์ตลากไปลึกกว่าเดิม
           recoverySide = (primaryOriginalType === "bullish") ? "bearish" : "bullish";
           recoveryComment = "AI RECOVERY HEDGE";
         } else {
-          // หาก RSI เกิด Oversold/Overbought รุนแรง ให้ถัวฝั่งเดิมเพื่อ Break-even จุดกลับตัว
           recoverySide = primaryOriginalType;
           recoveryComment = "AI RECOVERY BE-DCA";
         }
 
-        // 2. คำนวณ Lot ขนาดแก้ไม้แบบชาญฉลาด (Dynamic Risk Sizing)
         const totalOpenVol = currentLossPositions.reduce((acc, p) => acc + Number(p.volume), 0);
         const lossMagnitude = Math.abs(currentPL);
         
@@ -2301,11 +2469,9 @@ btnRecoveryAi.addEventListener("click", async () => {
         if (dynamicLot <= totalOpenVol) {
           dynamicLot = Math.round((totalOpenVol + 0.01) * 100) / 100;
         }
-        // ล็อคขนาด Lot สูงสุดตามความปลอดภัย
         dynamicLot = clamp(dynamicLot, 0.01, 10.00);
         const finalRecoveryLot = Number(dynamicLot.toFixed(2));
 
-        // 3. กำหนดเป้าหมาย TP / SL ให้ครอบคลุมการคุ้มทุน (Target Break-even + Small Profit)
         const pointMultiplier = isBtc ? 1.0 : (isAud ? 100000.0 * 0.74 : 100.0);
         const requiredPipsGain = (lossMagnitude * 1.15) / (finalRecoveryLot * pointMultiplier);
 
@@ -2515,28 +2681,6 @@ posModalOverlay.addEventListener("click", (e) => {
     posModalOverlay.classList.remove("active");
     clearInterval(positionsModalPollTimer);
   }
-});
-
-calcOrderBtn.addEventListener("click", () => {
-  if(activeMT5Trade){
-    showCenterToast("ACTIVE POSITION RUNNING", 1800, "error");
-    return;
-  }
-  requestConfirmation(
-    "EXECUTE CALCULATION",
-    `Analyze structure and calculate order for ${currentMt5Symbol}?`,
-    () => {
-      const currentPrice = lastPrice || (currentMt5Symbol.includes("BTC") ? 81500.0 : (currentMt5Symbol.includes("AUD") ? 0.92500 : 2650.0));
-      const plan = evaluateInstitutionalPlan(currentPrice);
-      if(plan){
-        if(isMT5Connected){
-          executeTrade(plan);
-        } else {
-          deployLocalOrder(plan);
-        }
-      }
-    }
-  );
 });
 
 document.getElementById("btn-clear-order").addEventListener("click", async () => {
