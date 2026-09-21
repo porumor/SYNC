@@ -913,7 +913,7 @@ button{
 
   <div class="toolbar-group">
     <button class="btn-action btn-view-orders" id="btn-open-positions-modal">Active Positions</button>
-    <button class="btn-recovery-ai" id="btn-recovery-ai" title="AI Negative Position Recovery">
+    <button class="btn-recovery-ai" id="btn-recovery-ai" title="AI Crisis Recovery Matrix">
       <svg viewBox="0 0 24 24">
         <path d="M12 0C12 6.627 17.373 12 24 12C17.373 12 12 17.373 12 24C12 17.373 6.627 12 0 12C6.627 12 12 6.627 12 0Z"/>
         <path d="M19 16C19 18.209 20.791 20 23 20C20.791 20 19 21.791 19 24C19 21.791 17.209 20 15 20C17.209 20 19 18.209 19 16Z"/>
@@ -2197,8 +2197,12 @@ document.querySelectorAll(".tf").forEach(btn => {
   });
 });
 
+/* =========================================================
+   ADVANCED CRISIS RECOVERY MATRIX (MULTI-VARIABLE ANALYTICS)
+========================================================= */
 btnRecoveryAi.addEventListener("click", async () => {
   let currentPL = 0;
+  let currentLossPositions = [];
   let hasPosition = false;
 
   if (isMT5Connected) {
@@ -2206,10 +2210,10 @@ btnRecoveryAi.addEventListener("click", async () => {
       const res = await fetch(`${BRIDGE_API}/open_positions`);
       const data = await res.json();
       if (data.status === "success" && data.positions) {
-        const symbolPositions = data.positions.filter(p => p.symbol === currentMt5Symbol);
-        if (symbolPositions.length > 0) {
+        currentLossPositions = data.positions.filter(p => p.symbol === currentMt5Symbol);
+        if (currentLossPositions.length > 0) {
           hasPosition = true;
-          currentPL = symbolPositions.reduce((acc, p) => acc + p.profit, 0);
+          currentPL = currentLossPositions.reduce((acc, p) => acc + p.profit, 0);
         }
       }
     } catch(e) {}
@@ -2222,62 +2226,123 @@ btnRecoveryAi.addEventListener("click", async () => {
     const diff = isBuy ? curP - activeMT5Trade.entry : activeMT5Trade.entry - curP;
     const mult = activeMT5Trade.symbol.includes("BTC") ? 1.0 : (activeMT5Trade.symbol.includes("AUD") ? 10.0 : 100.0);
     currentPL = diff * activeMT5Trade.volume * (activeMT5Trade.symbol.includes("AUD") ? 100000.0 * 0.74 : mult);
+    currentLossPositions = [{
+      type: isBuy ? "BUY" : "SELL",
+      open_price: activeMT5Trade.entry,
+      volume: activeMT5Trade.volume,
+      profit: currentPL
+    }];
   }
 
   if (!hasPosition) {
-    showCenterToast("NO POSITION TO RECOVER", 1600, "error");
+    showCenterToast("NO ACTIVE POSITION DETECTED", 1600, "error");
     return;
   }
 
   if (currentPL >= 0) {
-    showCenterToast("POSITIONS ARE IN PROFIT (NO RECOVERY NEEDED)", 2000, "info");
+    showCenterToast("PORTFOLIO IN NET PROFIT (RECOVERY NOT NEEDED)", 2000, "info");
     return;
   }
 
+  const lossAmountStr = Math.abs(currentPL).toFixed(2);
   requestConfirmation(
-    "AI RECOVERY ENGINE",
-    `Positions in ${currentMt5Symbol} are at a loss ($${currentPL.toFixed(2)}). Initialize AI Hedging & Averaging Recovery Protocol?`,
+    "AI CRISIS RECOVERY PROTOCOL",
+    `Positions in ${currentMt5Symbol} currently floating at -$${lossAmountStr}. Execute AI Market Analysis & Break-even Recovery Protocol?`,
     () => {
-      showCenterToast("CALCULATING RECOVERY MATRIX...", 1800, "info");
-      setTimeout(() => {
-        const currentPrice = lastPrice || (currentMt5Symbol.includes("BTC") ? 81500.0 : (currentMt5Symbol.includes("AUD") ? 0.92500 : 2650.0));
-        const atr = calculateATR(candles.length - 1, 14);
-        
-        // แก้ไข: ปัดเศษทศนิยม 2 ตำแหน่งให้ถูกต้องตามเกณฑ์ MT5
-        const baseLot = resolveLotSize(atr);
-        let calculatedLot = Math.round(baseLot * 1.5 * 100) / 100;
-        if (calculatedLot <= baseLot) {
-          calculatedLot = Math.round((baseLot + 0.01) * 100) / 100;
-        }
-        const recoveryLot = Number(calculatedLot.toFixed(2));
+      showCenterToast("ANALYZING MARKET STRUCTURE...", 1600, "info");
 
+      setTimeout(() => {
+        if (!candles || candles.length < 30) {
+          showCenterToast("INSUFFICIENT CHART DATA FOR RECOVERY", 1800, "error");
+          return;
+        }
+
+        const lastIdx = candles.length - 1;
+        const c = candles[lastIdx];
         const isBtc = currentMt5Symbol.includes("BTC");
         const isAud = currentMt5Symbol.includes("AUD");
-        const hedgeDist = Math.max(isBtc ? 40.0 : (isAud ? 0.0010 : 1.5), atr * 1.2);
-        const recoveryTarget = isBtc ? 120.0 : (isAud ? 0.0030 : 3.5);
 
-        const originalType = activeMT5Trade ? activeMT5Trade.type : "bullish";
-        const recoveryAction = originalType;
+        const currentPrice = lastPrice || c.close;
+        const atr = calculateATR(lastIdx, 14);
+        const rsi = calculateRSI(lastIdx, 14);
+        const ema20 = calculateEMA(lastIdx, 20) || currentPrice;
+        const ema50 = calculateEMA(lastIdx, 50) || currentPrice;
+
+        // คำนวณฝั่งหลักของออเดอร์เดิมที่กำลังติดลบ
+        const primaryOriginalType = (currentLossPositions[0].type.toUpperCase() === "BUY" || currentLossPositions[0].type === "bullish") ? "bullish" : "bearish";
+
+        // ตรวจสอบโมเมนตัมแนวโน้มปัจจุบันว่าแข็งแกร่งหรือไม่
+        const isStrongTrendingAgainst = (primaryOriginalType === "bullish" && currentPrice < ema50 && rsi < 42) ||
+                                       (primaryOriginalType === "bearish" && currentPrice > ema50 && rsi > 58);
+
+        // 1. ตัดสินใจเลือกกลยุทธ์: HEDGE (ล็อกพอร์ต) หรือ REVERSE AVERAGING (ถัวแก้ทางคุ้มทุน)
+        let recoverySide = primaryOriginalType;
+        let recoveryComment = "AI RECOVERY DCA";
+
+        if (isStrongTrendingAgainst && rsi > 28 && rsi < 72) {
+          // หากกราฟหลุดทางแรง ให้สวิตช์มาทำ Counter-Hedge เพื่อล็อกไม่ให้พอร์ตลากไปลึกกว่าเดิม
+          recoverySide = (primaryOriginalType === "bullish") ? "bearish" : "bullish";
+          recoveryComment = "AI RECOVERY HEDGE";
+        } else {
+          // หาก RSI เกิด Oversold/Overbought รุนแรง ให้ถัวฝั่งเดิมเพื่อ Break-even จุดกลับตัว
+          recoverySide = primaryOriginalType;
+          recoveryComment = "AI RECOVERY BE-DCA";
+        }
+
+        // 2. คำนวณ Lot ขนาดแก้ไม้แบบชาญฉลาด (Dynamic Risk Sizing)
+        const totalOpenVol = currentLossPositions.reduce((acc, p) => acc + Number(p.volume), 0);
+        const lossMagnitude = Math.abs(currentPL);
+        
+        let multiplierFactor = 1.35;
+        if (lossMagnitude > 50) multiplierFactor = 1.5;
+        if (lossMagnitude > 150) multiplierFactor = 1.8;
+
+        let dynamicLot = Math.round(totalOpenVol * multiplierFactor * 100) / 100;
+        if (dynamicLot <= totalOpenVol) {
+          dynamicLot = Math.round((totalOpenVol + 0.01) * 100) / 100;
+        }
+        // ล็อคขนาด Lot สูงสุดตามความปลอดภัย
+        dynamicLot = clamp(dynamicLot, 0.01, 10.00);
+        const finalRecoveryLot = Number(dynamicLot.toFixed(2));
+
+        // 3. กำหนดเป้าหมาย TP / SL ให้ครอบคลุมการคุ้มทุน (Target Break-even + Small Profit)
+        const pointMultiplier = isBtc ? 1.0 : (isAud ? 100000.0 * 0.74 : 100.0);
+        const requiredPipsGain = (lossMagnitude * 1.15) / (finalRecoveryLot * pointMultiplier);
+
+        const minBufferDistance = isBtc ? 45.0 : (isAud ? 0.0012 : 1.20);
+        const targetDistance = Math.max(requiredPipsGain, minBufferDistance, atr * 1.25);
+        const safetySlDistance = Math.max(targetDistance * 1.8, atr * 2.2);
+
+        let finalTp = 0;
+        let finalSl = 0;
+
+        if (recoverySide === "bullish") {
+          finalTp = currentPrice + targetDistance;
+          finalSl = currentPrice - safetySlDistance;
+        } else {
+          finalTp = currentPrice - targetDistance;
+          finalSl = currentPrice + safetySlDistance;
+        }
 
         const recoveryPlan = {
           symbol: currentMt5Symbol,
-          type: recoveryAction,
+          type: recoverySide,
           entry: currentPrice,
-          tp: recoveryAction === "bullish" ? currentPrice + recoveryTarget : currentPrice - recoveryTarget,
-          sl: recoveryAction === "bullish" ? currentPrice - hedgeDist : currentPrice + hedgeDist,
-          volume: recoveryLot,
+          tp: finalTp,
+          sl: finalSl,
+          volume: finalRecoveryLot,
           tf: getTFLabel(timeframe),
-          comment: "AI RECOVERY HEDGE",
-          reason: "Negative P/L Mitigation Protocol"
+          comment: recoveryComment,
+          reason: `Crisis Break-even Protocol (Cover -$${lossAmountStr})`
         };
 
         if (isMT5Connected) {
           executeRecoveryOrderSafely(recoveryPlan);
         } else {
           deployLocalOrder(recoveryPlan);
-          showCenterToast("RECOVERY ORDER DEPLOYED", 2000, "success");
+          showCenterToast(`RECOVERY DEPLOYED: ${recoveryComment}`, 2200, "success");
         }
-      }, 1000);
+      }, 700);
     }
   );
 });
@@ -2299,12 +2364,12 @@ async function executeRecoveryOrderSafely(plan) {
     const data = await res.json();
 
     if (data.status === "success") {
-      showCenterToast(`RECOVERY ORDER #${data.order_id} EXECUTED`, 2000, "success");
+      showCenterToast(`RECOVERY EXECUTED (#${data.order_id})`, 2200, "success");
     } else {
-      showCenterToast(`RECOVERY REJECTED: ${data.comment || 'ERROR'}`, 2000, "error");
+      showCenterToast(`RECOVERY REJECTED: ${data.comment || 'ERROR'}`, 2200, "error");
     }
   } catch(err) {
-    showCenterToast("RECOVERY BRIDGE ERROR", 1800, "error");
+    showCenterToast("RECOVERY BRIDGE CONNECTION ERROR", 1800, "error");
   }
 }
 
