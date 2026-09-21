@@ -1,0 +1,3100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Institutional Quantitative Terminal</title>
+
+<style>
+:root{
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-panel: rgba(255, 255, 255, 0.98);
+  --border-color: #e2e8f0;
+  --text-main: #0f172a;
+  --text-sub: #64748b;
+  --btn-bg: #ffffff;
+  --btn-border: #cbd5e1;
+  --btn-text: #1e293b;
+  --btn-hover: #f1f5f9;
+  --panel-item-bg: #f8fafc;
+  --panel-item-border: #e2e8f0;
+  --modal-overlay: rgba(15, 23, 42, 0.5);
+  --modal-bg: #ffffff;
+  --card-hover: #f8fafc;
+  --loader-bg: rgba(255, 255, 255, 0.85);
+  --loader-track: #e2e8f0;
+  --loader-spin: #00897b;
+}
+
+[data-theme="dark"]{
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-panel: rgba(10, 10, 10, 0.96);
+  --border-color: #222222;
+  --text-main: #f8fafc;
+  --text-sub: #888888;
+  --btn-bg: #0a0a0a;
+  --btn-border: #262626;
+  --btn-text: #e2e8f0;
+  --btn-hover: #171717;
+  --panel-item-bg: #080808;
+  --panel-item-border: #1f1f1f;
+  --modal-overlay: rgba(0, 0, 0, 0.8);
+  --modal-bg: #0d0d0d;
+  --card-hover: #141414;
+  --loader-bg: rgba(0, 0, 0, 0.82);
+  --loader-track: #222222;
+  --loader-spin: #00897b;
+}
+
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  -webkit-tap-highlight-color:transparent !important;
+  outline:none !important;
+  transition:background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+             border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+             color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html,body{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:var(--bg-primary);
+  color:var(--text-main);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"SF Pro Text",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+
+body{touch-action:none}
+.app{width:100%;height:100%;display:flex;flex-direction:column;background:var(--bg-primary)}
+
+.toolbar{
+  height:52px;
+  min-height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 16px;
+  background:var(--bg-primary);
+  border-bottom:1px solid var(--border-color);
+  overflow-x:auto;
+  scrollbar-width:none;
+  white-space:nowrap;
+  user-select:none;
+  gap:16px;
+  position:relative;
+  z-index:100;
+}
+.toolbar::-webkit-scrollbar{display:none}
+
+.toolbar-group{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-shrink:0;
+}
+
+.btn-sym-trigger{
+  height:32px;
+  min-width:115px;
+  padding:0 12px;
+  border-radius:4px;
+  border:1px solid var(--btn-border);
+  background:var(--btn-bg);
+  color:var(--text-main);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:0.3px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+}
+
+.btn-sym-trigger:hover{
+  background:var(--btn-hover);
+  border-color:var(--text-sub);
+}
+
+button{
+  border:0;
+  font-family:inherit;
+  user-select:none;
+}
+
+.lot-wrapper{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-shrink:0;
+}
+
+.lot-input{
+  height:32px;
+  width:72px;
+  padding:0 8px;
+  border-radius:4px;
+  border:1px solid var(--btn-border);
+  background:var(--btn-bg);
+  color:var(--text-main);
+  font-size:11px;
+  font-weight:700;
+  text-align:center;
+  flex-shrink:0;
+  -moz-appearance: textfield;
+}
+
+.lot-input::-webkit-outer-spin-button,
+.lot-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.lot-label{
+  font-size:11px;
+  font-weight:700;
+  color:var(--text-sub);
+}
+
+.price-box{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  flex-shrink:0;
+  padding:0 10px;
+}
+
+.price{
+  font-size:13px;
+  font-weight:700;
+  color:var(--text-main);
+  text-align:center;
+  font-variant-numeric:tabular-nums;
+  flex-shrink:0;
+}
+
+.change{
+  font-size:11px;
+  font-weight:600;
+  text-align:center;
+  font-variant-numeric:tabular-nums;
+  flex-shrink:0;
+}
+
+.separator{
+  width:1px;
+  height:24px;
+  background:var(--border-color);
+  flex-shrink:0;
+}
+
+.tf-group{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  flex-shrink:0;
+}
+
+.tf{
+  height:32px;
+  width:36px;
+  padding:0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:4px;
+  background:transparent;
+  color:var(--text-sub);
+  font-size:11px;
+  cursor:pointer;
+  flex-shrink:0;
+}
+
+.tf:hover{background:var(--btn-hover);color:var(--text-main)}
+.tf.active{background:var(--text-main);color:var(--bg-primary);font-weight:700}
+
+.btn-action{
+  height:32px;
+  padding:0 14px;
+  border-radius:4px;
+  border:1px solid var(--btn-border);
+  font-weight:700;
+  background:var(--btn-bg);
+  color:var(--btn-text);
+  font-size:11px;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  white-space:nowrap;
+  flex-shrink:0;
+  letter-spacing:0.2px;
+  gap:6px;
+}
+
+.btn-action:hover{
+  background:var(--btn-hover);
+  border-color:var(--text-sub);
+}
+
+.btn-view-orders{ width:125px; border-color:var(--btn-border); color:var(--text-main); }
+.btn-view-orders:hover{ background:var(--btn-hover); border-color:var(--text-sub); }
+
+.btn-recovery-ai {
+  height: 32px;
+  width: 38px;
+  padding: 0;
+  border-radius: 4px;
+  border: 1px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--text-main);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+.btn-recovery-ai:hover {
+  background: var(--btn-hover);
+  border-color: var(--text-sub);
+}
+.btn-recovery-ai svg {
+  width: 17px;
+  height: 17px;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
+.btn-calc-order{ width:125px; }
+.btn-clear{ width:90px; }
+.btn-reset{ width:86px; }
+
+.btn-toggle-conn{ width:125px; }
+.btn-toggle-conn.state-disconnected{ border-color:var(--btn-border); }
+.btn-toggle-conn.state-connected{ border-color:#059669 !important; }
+
+@keyframes borderBlinkRedSlow {
+  0%, 100% { border-color: var(--btn-border); }
+  50% { border-color: #dc2626; box-shadow: 0 0 0 1px #dc2626; }
+}
+
+.btn-toggle-conn.state-error-blink{
+  animation: borderBlinkRedSlow 0.5s ease-in-out 3;
+}
+
+.main{flex:1;min-height:0;display:flex;overflow:hidden;background:var(--bg-primary)}
+.chart-area{position:relative;flex:1;min-width:0;min-height:0;overflow:hidden;background:var(--bg-primary)}
+
+#chart{
+  display:block;
+  width:100%;
+  height:100%;
+  touch-action:none;
+  user-select:none;
+  cursor:grab;
+}
+#chart:active{cursor:grabbing}
+
+.chart-loader-overlay{
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:var(--loader-bg);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  z-index:40;
+  backdrop-filter:blur(4px);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chart-loader-overlay.active{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.loader-spinner{
+  width:32px;
+  height:32px;
+  border:3px solid var(--loader-track);
+  border-top-color:var(--loader-spin);
+  border-radius:50%;
+  animation:spinnerRotate 0.75s linear infinite;
+}
+
+@keyframes spinnerRotate{
+  0%{transform:rotate(0deg)}
+  100%{transform:rotate(360deg)}
+}
+
+.loader-text{
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:0.8px;
+  color:var(--text-sub);
+  text-transform:uppercase;
+}
+
+.ai-panel{
+  position:absolute;
+  top:12px;
+  left:12px;
+  width:260px;
+  padding:12px;
+  border:1px solid var(--border-color);
+  border-radius:6px;
+  background:var(--bg-panel);
+  box-shadow:0 4px 16px rgba(0,0,0,0.12);
+  z-index:10;
+  pointer-events:none;
+}
+
+.panel-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:6px;
+  margin-bottom:8px;
+}
+
+.action-badge{
+  flex:1;
+  height:28px;
+  border-radius:4px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:0.5px;
+  background:var(--panel-item-bg);
+  color:var(--text-sub);
+  border:1px solid var(--border-color);
+}
+.action-badge.bullish{border-color:#00897b;color:#00897b}
+.action-badge.bearish{border-color:#e53935;color:#e53935}
+
+.state-badge{
+  flex:1;
+  height:28px;
+  border-radius:4px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:0.3px;
+  background:var(--panel-item-bg);
+  color:var(--text-sub);
+  border:1px solid var(--border-color);
+}
+
+.panel-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:5px;
+}
+
+.p-box{
+  padding:6px 8px;
+  border-radius:4px;
+  background:var(--panel-item-bg);
+  border:1px solid var(--panel-item-border);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+.p-label{
+  font-size:8px;
+  font-weight:700;
+  letter-spacing:0.4px;
+  color:var(--text-sub);
+  margin-bottom:2px;
+  text-transform:uppercase;
+}
+
+.p-val{
+  font-size:11px;
+  font-weight:800;
+  color:var(--text-main);
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.bottom-ctrl-group{
+  position:absolute;
+  bottom:12px;
+  left:12px;
+  z-index:20;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.ctrl-btn{
+  width:36px;
+  height:36px;
+  border-radius:6px;
+  background:var(--bg-panel);
+  border:1px solid var(--border-color);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  color:var(--text-main);
+  padding:0;
+  line-height:0;
+}
+.ctrl-btn:hover{
+  border-color:var(--text-sub);
+  background:var(--btn-hover);
+}
+.ctrl-btn svg{
+  width:18px;
+  height:18px;
+  flex-shrink:0;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  fill:none;
+}
+
+#theme-sun-icon{ display:none; }
+#theme-moon-icon{ display:block; }
+[data-theme="dark"] #theme-sun-icon{ display:block !important; }
+[data-theme="dark"] #theme-moon-icon{ display:none !important; }
+
+#mode-pc-icon{ display:none; }
+#mode-mobile-icon{ display:block; }
+
+.bottom-bar{
+  height:26px;
+  min-height:26px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 12px;
+  background:var(--bg-primary);
+  border-top:1px solid var(--border-color);
+  color:var(--text-sub);
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:0.3px;
+  user-select:none;
+}
+
+.bottom-bar span{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+#active-sym-label{ flex-shrink:0; }
+#copyright-label{ text-align:right; flex-shrink:1; }
+
+.toast-overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  pointer-events:none;
+  z-index:10000;
+}
+
+.custom-toast{
+  background:var(--modal-bg);
+  border:1px solid var(--border-color);
+  color:var(--text-main);
+  padding:12px 20px;
+  border-radius:4px;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:0.8px;
+  box-shadow:0 12px 32px rgba(0,0,0,0.3);
+  text-transform:uppercase;
+  opacity:0;
+  transform:scale(0.94);
+  transition:all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events:none;
+}
+.custom-toast.active{
+  opacity:1;
+  transform:scale(1);
+}
+
+.confirm-overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:var(--modal-overlay);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9000;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.2s ease;
+  backdrop-filter:blur(3px);
+}
+.confirm-overlay.active{ opacity:1; pointer-events:auto; }
+
+.confirm-modal{
+  width:320px;
+  background:var(--modal-bg);
+  border:1px solid var(--border-color);
+  border-radius:6px;
+  padding:20px;
+  box-shadow:0 16px 40px rgba(0,0,0,0.4);
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  transform:scale(0.96);
+  transition:transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.confirm-overlay.active .confirm-modal{ transform:scale(1); }
+
+.confirm-title{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:0.6px;
+  color:var(--text-sub);
+  text-transform:uppercase;
+}
+
+.confirm-message{
+  font-size:13px;
+  font-weight:500;
+  line-height:1.45;
+  color:var(--text-main);
+}
+
+.confirm-actions{
+  display:flex;
+  gap:8px;
+  margin-top:4px;
+}
+
+.confirm-btn{
+  flex:1;
+  height:32px;
+  border-radius:4px;
+  border:1px solid var(--btn-border);
+  font-size:11px;
+  font-weight:600;
+  cursor:pointer;
+  background:var(--btn-bg);
+  color:var(--btn-text);
+  letter-spacing:0.3px;
+}
+.confirm-btn:hover{ background:var(--btn-hover); }
+.confirm-btn.btn-confirm{
+  background:var(--text-main);
+  color:var(--bg-primary);
+  border-color:var(--text-main);
+}
+
+.pos-modal-overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:var(--modal-overlay);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9600;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.2s ease;
+  backdrop-filter:blur(6px);
+}
+.pos-modal-overlay.active{ opacity:1; pointer-events:auto; }
+
+.pos-modal{
+  width:94%;
+  max-width:760px;
+  max-height:82vh;
+  background:var(--modal-bg);
+  border:1px solid var(--border-color);
+  border-radius:6px;
+  box-shadow:0 20px 48px rgba(0,0,0,0.35);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  transform:scale(0.97);
+  transition:transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.pos-modal-overlay.active .pos-modal{ transform:scale(1); }
+
+.pos-modal-header{
+  padding:12px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--border-color);
+  background:var(--panel-item-bg);
+}
+
+.pos-header-left{
+  display:flex;
+  align-items:center;
+}
+
+.pos-modal-title{
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:0.6px;
+  color:var(--text-main);
+  text-transform:uppercase;
+}
+
+.pos-header-stats{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+
+.pos-stat-item{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:11px;
+  font-weight:400;
+  color:var(--text-sub);
+}
+
+.pos-stat-val{
+  font-size:11px;
+  font-weight:500;
+  font-variant-numeric:tabular-nums;
+  color:var(--text-main);
+}
+
+.pos-modal-close{
+  background:transparent;
+  border:0;
+  color:var(--text-sub);
+  font-size:15px;
+  cursor:pointer;
+  line-height:1;
+  padding:4px 6px;
+  border-radius:3px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.pos-modal-close:hover{
+  background:var(--btn-hover);
+  color:var(--text-main);
+}
+
+.pos-modal-body{
+  padding:0;
+  overflow-y:auto;
+  flex:1;
+}
+
+.pos-table-wrap{
+  overflow-x:auto;
+}
+
+.pos-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:11px;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Roboto,sans-serif;
+  table-layout:fixed;
+}
+
+.pos-table th{
+  padding:9px 12px;
+  font-weight:500;
+  color:var(--text-sub);
+  border-bottom:1px solid var(--border-color);
+  background:var(--bg-primary);
+  text-transform:uppercase;
+  font-size:9px;
+  letter-spacing:0.5px;
+  white-space:nowrap;
+}
+
+.pos-table td{
+  padding:10px 12px;
+  border-bottom:1px solid var(--border-color);
+  font-variant-numeric:tabular-nums;
+  vertical-align:middle;
+  white-space:nowrap;
+  font-weight:400;
+}
+
+.pos-table tr.clickable-row{
+  cursor:pointer;
+}
+
+.pos-table tr.clickable-row:hover td{
+  background:var(--panel-item-bg);
+}
+
+.pos-code-badge{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  font-size:10px;
+  font-weight:400;
+  color:var(--text-sub);
+}
+
+.pos-type-tag{
+  padding:1px 5px;
+  border-radius:2px;
+  font-size:9px;
+  font-weight:500;
+  letter-spacing:0.4px;
+  display:inline-block;
+  border:1px solid var(--border-color);
+}
+.pos-type-tag.buy{ color:#0d9488; background:rgba(13,148,136,0.06); border-color:rgba(13,148,136,0.25); }
+.pos-type-tag.sell{ color:#e11d48; background:rgba(225,29,72,0.06); border-color:rgba(225,29,72,0.25); }
+
+.pos-pnl-cell{
+  font-weight:500;
+  font-variant-numeric:tabular-nums;
+}
+
+.sym-modal-overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:var(--modal-overlay);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9500;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.2s ease;
+  backdrop-filter:blur(4px);
+}
+.sym-modal-overlay.active{ opacity:1; pointer-events:auto; }
+
+.sym-modal{
+  width:360px;
+  background:var(--modal-bg);
+  border:1px solid var(--border-color);
+  border-radius:8px;
+  padding:16px;
+  box-shadow:0 24px 50px rgba(0,0,0,0.5);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  transform:scale(0.96);
+  transition:transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sym-modal-overlay.active .sym-modal{ transform:scale(1); }
+
+.sym-modal-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--border-color);
+  padding-bottom:10px;
+}
+
+.sym-modal-title{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:0.8px;
+  color:var(--text-sub);
+  text-transform:uppercase;
+}
+
+.sym-modal-close{
+  background:transparent;
+  border:0;
+  color:var(--text-sub);
+  font-size:18px;
+  cursor:pointer;
+  line-height:1;
+  padding:2px 6px;
+  border-radius:4px;
+}
+.sym-modal-close:hover{ background:var(--btn-hover); color:var(--text-main); }
+
+.sym-card-list{ display:flex; flex-direction:column; gap:6px; }
+
+.sym-item-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px 14px;
+  border-radius:6px;
+  background:var(--panel-item-bg);
+  border:1px solid var(--border-color);
+  cursor:pointer;
+  transition:all 0.15s ease;
+}
+
+.sym-item-row:hover{ background:var(--card-hover); border-color:var(--text-sub); }
+.sym-item-row.active{
+  border-color:var(--text-main);
+  background:var(--card-hover);
+  box-shadow:0 0 0 1px var(--text-main);
+}
+
+.sym-row-left{ display:flex; flex-direction:column; gap:4px; }
+.sym-name-text{ font-size:13px; font-weight:700; letter-spacing:0.4px; color:var(--text-main); }
+.sym-desc-text{ font-size:11px; font-weight:500; color:var(--text-sub); }
+.sym-row-right{ display:flex; flex-direction:column; align-items:flex-end; gap:2px; }
+.sym-quote-val{ font-size:14px; font-weight:700; font-variant-numeric:tabular-nums; color:var(--text-main); transition:color 0.2s ease; }
+.sym-change-val{ font-size:11px; font-weight:600; font-variant-numeric:tabular-nums; }
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<div class="toolbar">
+  <div class="toolbar-group">
+    <button class="btn-sym-trigger" id="btn-open-sym-modal">
+      <span id="current-sym-display">XAUUSDm</span>
+    </button>
+
+    <div class="separator"></div>
+
+    <div class="lot-wrapper">
+      <span class="lot-label">LOT:</span>
+      <input type="number" step="0.01" min="0.01" max="100.00" class="lot-input" id="lot-config" value="0.01" enterkeyhint="done">
+    </div>
+
+    <div class="separator"></div>
+
+    <div class="price-box">
+      <div class="price" id="price">--</div>
+      <div class="change" id="change">--</div>
+    </div>
+
+    <div class="separator"></div>
+
+    <div class="tf-group">
+      <button class="tf active" data-timeframe="60">1m</button>
+      <button class="tf" data-timeframe="300">5m</button>
+      <button class="tf" data-timeframe="900">15m</button>
+      <button class="tf" data-timeframe="1800">30m</button>
+      <button class="tf" data-timeframe="3600">1H</button>
+    </div>
+  </div>
+
+  <div class="separator"></div>
+
+  <div class="toolbar-group">
+    <button class="btn-action btn-view-orders" id="btn-open-positions-modal">Active Positions</button>
+    <button class="btn-recovery-ai" id="btn-recovery-ai" title="AI Negative Position Recovery">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 0C12 6.627 17.373 12 24 12C17.373 12 12 17.373 12 24C12 17.373 6.627 12 0 12C6.627 12 12 6.627 12 0Z"/>
+        <path d="M19 16C19 18.209 20.791 20 23 20C20.791 20 19 21.791 19 24C19 21.791 17.209 20 15 20C17.209 20 19 18.209 19 16Z"/>
+      </svg>
+    </button>
+    <button class="btn-action btn-calc-order" id="btn-calc-order">Calculate Order</button>
+    <button class="btn-action btn-toggle-conn state-disconnected" id="btn-toggle-connection">
+      <span class="btn-text">Connect MT5</span>
+    </button>
+    <button class="btn-action btn-clear" id="btn-clear-order">Clear Order</button>
+    <button class="btn-action btn-reset" id="reset">Reset View</button>
+  </div>
+</div>
+
+<div class="main">
+<div class="chart-area">
+  <canvas id="chart"></canvas>
+
+  <div class="chart-loader-overlay active" id="chart-loader">
+    <div class="loader-spinner"></div>
+    <span class="loader-text" id="loader-status-text">INITIALIZING MARKET DATA</span>
+  </div>
+
+<div class="bottom-ctrl-group">
+  <button class="ctrl-btn" id="theme-toggle" title="Toggle Light / Dark Mode">
+    <svg id="theme-sun-icon" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="4"></circle>
+      <line x1="12" y1="2" x2="12" y2="4"></line>
+      <line x1="12" y1="20" x2="12" y2="22"></line>
+      <line x1="4.93" y1="4.93" x2="6.34" y2="6.34"></line>
+      <line x1="17.66" y1="17.66" x2="19.07" y2="19.07"></line>
+      <line x1="2" y1="12" x2="4" y2="12"></line>
+      <line x1="20" y1="12" x2="22" y2="12"></line>
+      <line x1="4.93" y1="19.07" x2="6.34" y2="17.66"></line>
+      <line x1="17.66" y1="6.34" x2="19.07" y2="4.93"></line>
+    </svg>
+    <svg id="theme-moon-icon" viewBox="0 0 24 24">
+      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+    </svg>
+  </button>
+
+  <button class="ctrl-btn" id="ctrl-mode-toggle" title="Switch Control Mode">
+    <svg id="mode-mobile-icon" viewBox="0 0 24 24">
+      <rect x="5" y="2" width="14" height="20" rx="3" ry="3"></rect>
+      <line x1="12" y1="18" x2="12.01" y2="18"></line>
+    </svg>
+    <svg id="mode-pc-icon" viewBox="0 0 24 24">
+      <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+      <line x1="8" y1="21" x2="16" y2="21"></line>
+      <line x1="12" y1="17" x2="12" y2="21"></line>
+    </svg>
+  </button>
+</div>
+
+<div class="ai-panel">
+  <div class="panel-header">
+    <div class="action-badge" id="signal">SCANNING</div>
+    <div class="state-badge" id="ticket-badge">ID: NONE</div>
+  </div>
+
+  <div class="panel-grid">
+    <div class="p-box">
+      <span class="p-label">Entry</span>
+      <span class="p-val" id="entry">--</span>
+    </div>
+    <div class="p-box">
+      <span class="p-label">Current</span>
+      <span class="p-val" id="current-pos-price">--</span>
+    </div>
+
+    <div class="p-box">
+      <span class="p-label">Target (TP)</span>
+      <span class="p-val" id="tp" style="color:#00897b">--</span>
+    </div>
+    <div class="p-box">
+      <span class="p-label">Stop (SL)</span>
+      <span class="p-val" id="sl" style="color:#e53935">--</span>
+    </div>
+
+    <div class="p-box">
+      <span class="p-label">Volume</span>
+      <span class="p-val" id="panel-lot">--</span>
+    </div>
+    <div class="p-box">
+      <span class="p-label">P/L (USD)</span>
+      <span class="p-val" id="floating-pl">--</span>
+    </div>
+
+    <div class="p-box">
+      <span class="p-label">Time</span>
+      <span class="p-val" id="order-open-time">--</span>
+    </div>
+    <div class="p-box">
+      <span class="p-label">Timeframe</span>
+      <span class="p-val" id="order-tf">--</span>
+    </div>
+  </div>
+</div>
+
+</div>
+</div>
+
+<div class="bottom-bar">
+  <span id="active-sym-label">SYMBOL: XAUUSDm | LOT: 0.01</span>
+  <span id="copyright-label">© 2026 SYNC TRADING SYSTEMS. ALL RIGHTS RESERVED.</span>
+</div>
+
+<div class="toast-overlay">
+  <div class="custom-toast" id="center-toast"></div>
+</div>
+
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-modal">
+    <div class="confirm-title" id="confirm-modal-title">CONFIRMATION</div>
+    <div class="confirm-message" id="confirm-modal-msg">Are you sure you want to proceed?</div>
+    <div class="confirm-actions">
+      <button class="confirm-btn" id="confirm-modal-cancel">CANCEL</button>
+      <button class="confirm-btn btn-confirm" id="confirm-modal-ok">CONFIRM</button>
+    </div>
+  </div>
+</div>
+
+<div class="pos-modal-overlay" id="pos-modal-overlay">
+  <div class="pos-modal">
+    <div class="pos-modal-header">
+      <div class="pos-header-left">
+        <span class="pos-modal-title">Active Positions</span>
+      </div>
+      <div class="pos-header-stats">
+        <div class="pos-stat-item">
+          <span>Positions:</span>
+          <span class="pos-stat-val" id="modal-pos-count">0</span>
+        </div>
+        <div class="pos-stat-item">
+          <span>Net P/L:</span>
+          <span class="pos-stat-val" id="modal-total-pnl">$0.00</span>
+        </div>
+        <button class="pos-modal-close" id="pos-modal-close" title="Close">✕</button>
+      </div>
+    </div>
+    <div class="pos-modal-body">
+      <div class="pos-table-wrap">
+        <table class="pos-table">
+          <thead>
+            <tr>
+              <th style="width:14%; text-align:center;">Ticket</th>
+              <th style="width:16%; text-align:center;">Symbol</th>
+              <th style="width:11%; text-align:center;">Side</th>
+              <th style="width:11%; text-align:center;">Volume</th>
+              <th style="width:16%; text-align:center;">Open</th>
+              <th style="width:16%; text-align:center;">Current</th>
+              <th style="width:16%; text-align:right;">P/L (USD)</th>
+            </tr>
+          </thead>
+          <tbody id="pos-table-body">
+            <tr><td colspan="7" style="text-align:center;color:var(--text-sub);padding:24px;letter-spacing:0.5px;text-transform:uppercase;font-size:10px;">No open positions detected</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sym-modal-overlay" id="sym-modal-overlay">
+  <div class="sym-modal">
+    <div class="sym-modal-header">
+      <span class="sym-modal-title">Select Market Asset</span>
+      <button class="sym-modal-close" id="sym-modal-close">&times;</button>
+    </div>
+    <div class="sym-card-list">
+      <div class="sym-item-row active" data-ws="frxXAUUSD" data-mt5="XAUUSDm" id="card-xau">
+        <div class="sym-row-left">
+          <span class="sym-name-text">XAUUSDm</span>
+          <span class="sym-desc-text">Spot Gold / US Dollar</span>
+        </div>
+        <div class="sym-row-right">
+          <span class="sym-quote-val" id="row-price-gold">--</span>
+          <span class="sym-change-val" id="row-change-gold">--</span>
+        </div>
+      </div>
+
+      <div class="sym-item-row" data-ws="cryBTCUSD" data-mt5="BTCUSDm" id="card-btc">
+        <div class="sym-row-left">
+          <span class="sym-name-text">BTCUSDm</span>
+          <span class="sym-desc-text">Bitcoin Spot / US Dollar</span>
+        </div>
+        <div class="sym-row-right">
+          <span class="sym-quote-val" id="row-price-btc">--</span>
+          <span class="sym-change-val" id="row-change-btc">--</span>
+        </div>
+      </div>
+
+      <div class="sym-item-row" data-ws="frxAUDCAD" data-mt5="AUDCADm" id="card-audcad">
+        <div class="sym-row-left">
+          <span class="sym-name-text">AUDCADm</span>
+          <span class="sym-desc-text">Australian Dollar / Canadian Dollar</span>
+        </div>
+        <div class="sym-row-right">
+          <span class="sym-quote-val" id="row-price-audcad">--</span>
+          <span class="sym-change-val" id="row-change-audcad">--</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+let currentWsSymbol = "frxXAUUSD";
+let currentMt5Symbol = "XAUUSDm";
+let currentLotSetting = "0.01";
+
+const WS_URL = "wss://api.derivws.com/trading/v1/options/ws/public";
+
+// เชื่อมต่อไปยัง Cloudflare Tunnel ล่าสุดที่คุณรันสำเร็จ
+const BRIDGE_API = "https://objectives-numerical-undergraduate-ross.trycloudflare.com";
+
+let ws = null;
+let isMT5Connected = false;
+let isCheckingConnection = false;
+let timeframe = 60;
+let showProjectedPL = false;
+
+let currentInteractionMode = localStorage.getItem('app_interaction_mode') || (window.innerWidth <= 768 ? 'mobile' : 'pc');
+
+let pricesCache = {
+  frxXAUUSD: { last: null, open: null },
+  cryBTCUSD: { last: null, open: null },
+  frxAUDCAD: { last: null, open: null }
+};
+
+const chartLoader = document.getElementById("chart-loader");
+const loaderStatusText = document.getElementById("loader-status-text");
+
+function showChartLoader(text = "INITIALIZING MARKET DATA") {
+  if (loaderStatusText) loaderStatusText.textContent = text;
+  if (chartLoader) chartLoader.classList.add("active");
+}
+
+function hideChartLoader() {
+  if (chartLoader) chartLoader.classList.remove("active");
+}
+
+let audioCtx = null;
+function playTerminalTone(toneType = "info") {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    const now = audioCtx.currentTime;
+    if (toneType === "success") {
+      osc.frequency.setValueAtTime(587.33, now);
+      osc.frequency.setValueAtTime(880.00, now + 0.16);
+      gain.gain.setValueAtTime(0.40, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+      osc.start(now);
+      osc.stop(now + 0.55);
+    } else if (toneType === "error") {
+      osc.frequency.setValueAtTime(329.63, now);
+      osc.frequency.setValueAtTime(220.00, now + 0.18);
+      gain.gain.setValueAtTime(0.45, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+      osc.start(now);
+      osc.stop(now + 0.55);
+    } else {
+      osc.frequency.setValueAtTime(659.25, now);
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      osc.start(now);
+      osc.stop(now + 0.35);
+    }
+  } catch(e){}
+}
+
+let toastTimer = null;
+const centerToastEl = document.getElementById("center-toast");
+
+function showCenterToast(message, duration = 1600, toneType = "info") {
+  playTerminalTone(toneType);
+  clearTimeout(toastTimer);
+  centerToastEl.textContent = message;
+  centerToastEl.classList.add("active");
+  toastTimer = setTimeout(() => {
+    centerToastEl.classList.remove("active");
+  }, duration);
+}
+
+const confirmOverlay = document.getElementById("confirm-overlay");
+const confirmModalTitle = document.getElementById("confirm-modal-title");
+const confirmModalMsg = document.getElementById("confirm-modal-msg");
+const confirmModalCancel = document.getElementById("confirm-modal-cancel");
+const confirmModalOk = document.getElementById("confirm-modal-ok");
+
+let pendingConfirmAction = null;
+
+function requestConfirmation(title, message, onConfirm) {
+  confirmModalTitle.textContent = title;
+  confirmModalMsg.textContent = message;
+  pendingConfirmAction = onConfirm;
+  confirmOverlay.classList.add("active");
+}
+
+confirmModalCancel.addEventListener("click", () => {
+  confirmOverlay.classList.remove("active");
+  pendingConfirmAction = null;
+});
+
+confirmModalOk.addEventListener("click", () => {
+  confirmOverlay.classList.remove("active");
+  if (typeof pendingConfirmAction === "function") {
+    pendingConfirmAction();
+  }
+  pendingConfirmAction = null;
+});
+
+const symModalOverlay = document.getElementById("sym-modal-overlay");
+const btnOpenSymModal = document.getElementById("btn-open-sym-modal");
+const symModalClose = document.getElementById("sym-modal-close");
+const currentSymDisplay = document.getElementById("current-sym-display");
+const rowPriceGold = document.getElementById("row-price-gold");
+const rowChangeGold = document.getElementById("row-change-gold");
+const rowPriceBtc = document.getElementById("row-price-btc");
+const rowChangeBtc = document.getElementById("row-change-btc");
+const rowPriceAudcad = document.getElementById("row-price-audcad");
+const rowChangeAudcad = document.getElementById("row-change-audcad");
+
+btnOpenSymModal.addEventListener("click", () => {
+  symModalOverlay.classList.add("active");
+});
+
+symModalClose.addEventListener("click", () => {
+  symModalOverlay.classList.remove("active");
+});
+
+symModalOverlay.addEventListener("click", (e) => {
+  if (e.target === symModalOverlay) {
+    symModalOverlay.classList.remove("active");
+  }
+});
+
+function setMarketAssetSelection(wsSym, mt5Sym, reloadHistory = true) {
+  document.querySelectorAll(".sym-item-row").forEach(row => {
+    if (row.dataset.mt5 === mt5Sym || row.dataset.ws === wsSym) {
+      row.classList.add("active");
+    } else {
+      row.classList.remove("active");
+    }
+  });
+
+  currentSymDisplay.textContent = mt5Sym;
+
+  if (currentWsSymbol === wsSym && !reloadHistory) return;
+
+  candles = [];
+  currentCandle = null;
+  firstPrice = null;
+  lastPrice = null;
+  prevPrice = null;
+  customMinPrice = null;
+  customMaxPrice = null;
+  autoScaleY = true;
+  autoFollow = true;
+
+  showChartLoader(`SYNCING ${mt5Sym}`);
+  currentWsSymbol = wsSym;
+  currentMt5Symbol = mt5Sym;
+  updateFooterLabels();
+
+  activeMT5Trade = JSON.parse(localStorage.getItem('active_trade_' + currentMt5Symbol) || 'null');
+  if (activeMT5Trade) {
+    renderActiveTrade(activeMT5Trade);
+  } else {
+    showScanning(true);
+  }
+  
+  if (reloadHistory) {
+    requestHistory();
+  }
+}
+
+document.querySelectorAll(".sym-item-row").forEach(row => {
+  row.addEventListener("click", () => {
+    const wsSym = row.dataset.ws;
+    const mt5Sym = row.dataset.mt5;
+    symModalOverlay.classList.remove("active");
+    setMarketAssetSelection(wsSym, mt5Sym, true);
+  });
+});
+
+let currentTheme = localStorage.getItem('app_theme') || 'dark';
+const themeToggleBtn = document.getElementById("theme-toggle");
+
+let canvasThemeProgress = currentTheme === 'dark' ? 1.0 : 0.0;
+let targetThemeProgress = canvasThemeProgress;
+let animThemeRaf = null;
+
+function hexToRgb(hex) {
+  const c = parseInt(hex.replace("#", ""), 16);
+  return [(c >> 16) & 255, (c >> 8) & 255, c & 255];
+}
+
+function lerpColor(c1, c2, t) {
+  const r = Math.round(c1[0] + (c2[0] - c1[0]) * t);
+  const g = Math.round(c1[1] + (c2[1] - c1[1]) * t);
+  const b = Math.round(c1[2] + (c2[2] - c1[2]) * t);
+  return `rgb(${r},${g},${b})`;
+}
+
+const COLOR_LIGHT_BG = hexToRgb("#ffffff");
+const COLOR_DARK_BG = hexToRgb("#000000");
+
+function animateCanvasThemeTransition() {
+  const diff = targetThemeProgress - canvasThemeProgress;
+  if (Math.abs(diff) > 0.01) {
+    canvasThemeProgress += diff * 0.15;
+    draw();
+    animThemeRaf = requestAnimationFrame(animateCanvasThemeTransition);
+  } else {
+    canvasThemeProgress = targetThemeProgress;
+    draw();
+    cancelAnimationFrame(animThemeRaf);
+  }
+}
+
+function applyTheme(theme, smooth = true){
+  currentTheme = theme;
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('app_theme', theme);
+  targetThemeProgress = (theme === 'dark') ? 1.0 : 0.0;
+
+  if (smooth) {
+    cancelAnimationFrame(animThemeRaf);
+    animateCanvasThemeTransition();
+  } else {
+    canvasThemeProgress = targetThemeProgress;
+    draw();
+  }
+}
+
+themeToggleBtn.addEventListener("click", () => {
+  const nextTheme = (currentTheme === 'dark') ? 'light' : 'dark';
+  applyTheme(nextTheme, true);
+});
+
+const ctrlModeToggleBtn = document.getElementById("ctrl-mode-toggle");
+const modeMobileIcon = document.getElementById("mode-mobile-icon");
+const modePcIcon = document.getElementById("mode-pc-icon");
+
+function applyInteractionMode(mode, notify = true){
+  currentInteractionMode = mode;
+  localStorage.setItem('app_interaction_mode', mode);
+
+  if(mode === 'pc'){
+    modeMobileIcon.style.display = 'none';
+    modePcIcon.style.display = 'block';
+    canvas.style.cursor = 'crosshair';
+    if(notify) showCenterToast("DESKTOP MODE ACTIVATED", 1500, "info");
+  } else {
+    modeMobileIcon.style.display = 'block';
+    modePcIcon.style.display = 'none';
+    canvas.style.cursor = 'grab';
+    if(notify) showCenterToast("MOBILE MODE ACTIVATED", 1500, "info");
+  }
+  draw();
+}
+
+ctrlModeToggleBtn.addEventListener("click", () => {
+  const nextMode = currentInteractionMode === 'mobile' ? 'pc' : 'mobile';
+  applyInteractionMode(nextMode, true);
+});
+
+function getTFLabel(seconds){
+  switch(seconds){
+    case 60: return "1m";
+    case 300: return "5m";
+    case 900: return "15m";
+    case 1800: return "30m";
+    case 3600: return "1H";
+    default: return `${seconds}s`;
+  }
+}
+
+function formatOrderDateTime(epoch){
+  if(!epoch) return "--";
+  const d = new Date(epoch * 1000);
+  const pad = n => String(n).padStart(2, "0");
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+let candles = [];
+let currentCandle = null;
+let firstPrice = null;
+let lastPrice = null;
+let prevPrice = null;
+let priceFlashColor = null;
+let flashTimeout = null;
+
+let lastServerEpoch = null;
+let reconnectTimer = null;
+
+let viewStart = 0;
+let viewCount = 80;
+const MIN_VIEW = 10;
+const MAX_VIEW = 800;
+const AUTO_RIGHT_CANDLES = 25;
+
+let autoFollow = true;
+let autoScaleY = true;
+let customMinPrice = null;
+let customMaxPrice = null;
+let currentMinPrice = 0;
+let currentMaxPrice = 0;
+
+let mouseX = null;
+let mouseY = null;
+
+const pointers = new Map();
+let isDragging = false;
+let isYScaleDragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
+let dragStartStart = 0;
+let dragStartMinPrice = 0;
+let dragStartMaxPrice = 0;
+
+let activeMT5Trade = JSON.parse(localStorage.getItem('active_trade_' + currentMt5Symbol) || 'null');
+let isExecutingTrade = false;
+let statusPollTimer = null;
+let positionsModalPollTimer = null;
+
+const canvas = document.getElementById("chart");
+const ctx = canvas.getContext("2d");
+
+const priceEl = document.getElementById("price");
+const changeEl = document.getElementById("change");
+
+const signalEl = document.getElementById("signal");
+const ticketBadgeEl = document.getElementById("ticket-badge");
+const entryEl = document.getElementById("entry");
+const currentPosPriceEl = document.getElementById("current-pos-price");
+const tpEl = document.getElementById("tp");
+const slEl = document.getElementById("sl");
+const panelLotEl = document.getElementById("panel-lot");
+const floatingPlEl = document.getElementById("floating-pl");
+const orderOpenTimeEl = document.getElementById("order-open-time");
+const orderTfEl = document.getElementById("order-tf");
+
+const toggleConnBtn = document.getElementById("btn-toggle-connection");
+const calcOrderBtn = document.getElementById("btn-calc-order");
+const btnRecoveryAi = document.getElementById("btn-recovery-ai");
+const activeSymLabel = document.getElementById("active-sym-label");
+const lotConfig = document.getElementById("lot-config");
+
+const posModalOverlay = document.getElementById("pos-modal-overlay");
+const btnOpenPositionsModal = document.getElementById("btn-open-positions-modal");
+const posModalClose = document.getElementById("pos-modal-close");
+const posTableBody = document.getElementById("pos-table-body");
+const modalTotalPnl = document.getElementById("modal-total-pnl");
+const modalPosCount = document.getElementById("modal-pos-count");
+
+function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
+
+function checkMarketOpen() {
+  if (currentMt5Symbol.includes("BTC")) return { isOpen: true, text: "OPEN" };
+  const now = new Date();
+  const utcDay = now.getUTCDay();
+  const utcHour = now.getUTCHours();
+  if (utcDay === 6) return { isOpen: false, text: "CLOSED" };
+  if (utcDay === 5 && utcHour >= 21) return { isOpen: false, text: "CLOSED" };
+  if (utcDay === 0 && utcHour < 22) return { isOpen: false, text: "CLOSED" };
+  if (utcHour === 21) return { isOpen: false, text: "CLOSED" };
+  return { isOpen: true, text: "OPEN" };
+}
+
+function updateMarketStatusDisplay() {
+  const status = checkMarketOpen();
+  if (!status.isOpen && !activeMT5Trade) {
+    signalEl.textContent = "CLOSED";
+    signalEl.className = "action-badge";
+    ticketBadgeEl.textContent = "SESSION CLOSED";
+  } else if (status.isOpen && !activeMT5Trade && signalEl.textContent === "CLOSED") {
+    showScanning();
+  }
+  return status.isOpen;
+}
+
+function getPlot(){
+  const width = canvas.clientWidth;
+  const left = 10;
+  const right = width - 10;
+  return {left: left, width: Math.max(100, right - left), right: right};
+}
+
+function chartWidth(){return Math.max(100, getPlot().width);}
+
+function resizeCanvas(){
+  const rect = canvas.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+  canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if(candles.length && autoFollow){ positionLatest(); }
+  draw();
+}
+
+function formatPrice(v){
+  if(!Number.isFinite(v)) return "--";
+  const decimals = currentMt5Symbol.includes("BTC") ? 1 : (currentMt5Symbol.includes("AUD") ? 5 : 2);
+  return Number(v).toLocaleString("en-US", {minimumFractionDigits: decimals, maximumFractionDigits: decimals});
+}
+
+function getCountdownText(){
+  if(!currentCandle) return "";
+  const nowEpoch = lastServerEpoch || Math.floor(Date.now()/1000);
+  const candleEnd = currentCandle.time + timeframe;
+  let remaining = Math.max(0, candleEnd - nowEpoch);
+  const mins = Math.floor(remaining / 60);
+  const secs = remaining % 60;
+  return `${String(mins).padStart(2,"0")}:${String(secs).padStart(2,"0")}`;
+}
+
+function triggerPriceFlash(direction){
+  priceFlashColor = direction === "up" ? "#00897b" : "#e53935";
+  priceEl.style.color = priceFlashColor;
+  clearTimeout(flashTimeout);
+  flashTimeout = setTimeout(() => {
+    priceFlashColor = null;
+    priceEl.style.color = currentTheme === 'dark' ? '#f8fafc' : '#0f172a';
+    draw();
+  }, 400);
+}
+
+function updateHeader(price){
+  if(!Number.isFinite(price)) return;
+  priceEl.textContent = formatPrice(price);
+  currentPosPriceEl.textContent = formatPrice(price);
+
+  if(firstPrice !== null){
+    const diff = price - firstPrice;
+    const pct = firstPrice !== 0 ? (diff / firstPrice) * 100 : 0;
+    const sign = diff >= 0 ? "+" : "";
+    changeEl.textContent = `${sign}${diff.toFixed(currentMt5Symbol.includes("AUD")?5:2)} (${sign}${pct.toFixed(2)}%)`;
+    changeEl.style.color = diff >= 0 ? "#00897b" : "#e53935";
+  }
+}
+
+function calculateFitCount(){
+  return clamp(Math.floor(chartWidth() / 11), MIN_VIEW, MAX_VIEW);
+}
+
+function positionLatest(){
+  if(!candles.length) return;
+  viewStart = candles.length - viewCount + AUTO_RIGHT_CANDLES;
+}
+
+function resetView(){
+  autoFollow = true;
+  autoScaleY = true;
+  customMinPrice = null;
+  customMaxPrice = null;
+  if(!candles.length){ viewStart = 0; viewCount = 80; draw(); return; }
+  viewCount = Math.min(calculateFitCount(), candles.length);
+  positionLatest();
+  draw();
+}
+
+function requestHistory(){
+  if(!ws || ws.readyState !== WebSocket.OPEN) return;
+  candles = [];
+  currentCandle = null;
+  firstPrice = null;
+  lastPrice = null;
+  prevPrice = null;
+  customMinPrice = null;
+  customMaxPrice = null;
+  autoScaleY = true;
+  autoFollow = true;
+
+  updateMarketStatusDisplay();
+  showChartLoader("SYNCING HISTORICAL CANDLES");
+
+  ws.send(JSON.stringify({
+    ticks_history: currentWsSymbol,
+    adjust_start_time: 1,
+    count: 350,
+    end: "latest",
+    style: "candles",
+    granularity: timeframe
+  }));
+}
+
+function connect(){
+  clearTimeout(reconnectTimer);
+  try{ ws = new WebSocket(WS_URL); }catch(e){ scheduleReconnect(); return; }
+
+  ws.onopen = () => {
+    ws.send(JSON.stringify({ticks: "frxXAUUSD", subscribe: 1}));
+    ws.send(JSON.stringify({ticks: "cryBTCUSD", subscribe: 1}));
+    ws.send(JSON.stringify({ticks: "frxAUDCAD", subscribe: 1}));
+    requestHistory();
+  };
+  ws.onmessage = event => {
+    let data;
+    try{ data = JSON.parse(event.data); }catch(e){ return; }
+    if(data.msg_type === "candles") handleHistory(data);
+    if(data.msg_type === "tick") handleTick(data);
+  };
+  ws.onerror = () => { hideChartLoader(); };
+  ws.onclose = () => { scheduleReconnect(); };
+}
+
+function scheduleReconnect(){
+  clearTimeout(reconnectTimer);
+  reconnectTimer = setTimeout(connect, 2000);
+}
+
+function handleHistory(data){
+  if(!Array.isArray(data.candles) || data.candles.length === 0) {
+    hideChartLoader();
+    return;
+  }
+
+  if (data.echo_req && data.echo_req.ticks_history && data.echo_req.ticks_history !== currentWsSymbol) {
+    return;
+  }
+
+  candles = data.candles.map(c => ({
+    time: Number(c.epoch),
+    open: Number(c.open),
+    high: Number(c.high),
+    low: Number(c.low),
+    close: Number(c.close)
+  })).filter(c =>
+    Number.isFinite(c.time) &&
+    Number.isFinite(c.open) &&
+    Number.isFinite(c.high) &&
+    Number.isFinite(c.low) &&
+    Number.isFinite(c.close)
+  );
+
+  if(candles.length){
+    firstPrice = candles[0].open;
+    lastPrice = candles[candles.length-1].close;
+    prevPrice = lastPrice;
+    updateHeader(lastPrice);
+
+    pricesCache[currentWsSymbol].open = firstPrice;
+    pricesCache[currentWsSymbol].last = lastPrice;
+
+    viewCount = Math.min(calculateFitCount(), candles.length);
+    autoFollow = true;
+    autoScaleY = true;
+    customMinPrice = null;
+    customMaxPrice = null;
+    positionLatest();
+
+    currentCandle = candles[candles.length-1];
+    lastServerEpoch = currentCandle.time;
+
+    activeMT5Trade = JSON.parse(localStorage.getItem('active_trade_' + currentMt5Symbol) || 'null');
+    if(activeMT5Trade){
+      renderActiveTrade(activeMT5Trade);
+    } else {
+      showScanning();
+      if (isMT5Connected) {
+        checkInstitutionalSetup(lastPrice);
+      }
+    }
+
+    draw();
+
+    setTimeout(() => {
+      hideChartLoader();
+    }, 150);
+  }
+}
+
+function updateRealtimeTickPL(quotePrice) {
+  if (!activeMT5Trade) return;
+  const isBuy = activeMT5Trade.type === "bullish";
+  const diff = isBuy ? (quotePrice - activeMT5Trade.entry) : (activeMT5Trade.entry - quotePrice);
+  const multiplier = activeMT5Trade.symbol.includes("BTC") ? 1.0 : (activeMT5Trade.symbol.includes("AUD") ? 100000.0 : 100.0);
+  const estPL = diff * (activeMT5Trade.volume || 0.01) * (activeMT5Trade.symbol.includes("AUD") ? 10 : multiplier);
+
+  const sign = estPL >= 0 ? "+" : "";
+  floatingPlEl.textContent = `${sign}$${estPL.toFixed(2)}`;
+  floatingPlEl.style.color = estPL >= 0 ? "#00897b" : "#e53935";
+}
+
+function handleTick(data){
+  if(!data.tick) return;
+  const quotePrice = Number(data.tick.quote);
+  const sym = data.tick.symbol;
+
+  if (pricesCache[sym]) {
+    const isGold = sym === "frxXAUUSD";
+    const isBtc = sym === "cryBTCUSD";
+    const priceTargetEl = isGold ? rowPriceGold : (isBtc ? rowPriceBtc : rowPriceAudcad);
+    const changeTargetEl = isGold ? rowChangeGold : (isBtc ? rowChangeBtc : rowChangeAudcad);
+
+    const oldPrice = pricesCache[sym].last;
+    pricesCache[sym].last = quotePrice;
+
+    if (pricesCache[sym].open === null) pricesCache[sym].open = quotePrice;
+    const openPrice = pricesCache[sym].open;
+    const diff = quotePrice - openPrice;
+    const pct = openPrice !== 0 ? (diff / openPrice) * 100 : 0;
+    const sign = diff >= 0 ? "+" : "";
+
+    const decimals = isBtc ? 1 : (isGold ? 2 : 5);
+    priceTargetEl.textContent = quotePrice.toFixed(decimals);
+    changeTargetEl.textContent = `${sign}${diff.toFixed(decimals)} ${sign}${pct.toFixed(2)}%`;
+    changeTargetEl.style.color = diff >= 0 ? "#00897b" : "#e53935";
+
+    if (oldPrice !== null) {
+      if (quotePrice > oldPrice) {
+        priceTargetEl.style.color = "#00897b";
+        setTimeout(() => { priceTargetEl.style.color = "var(--text-main)"; }, 350);
+      } else if (quotePrice < oldPrice) {
+        priceTargetEl.style.color = "#e53935";
+        setTimeout(() => { priceTargetEl.style.color = "var(--text-main)"; }, 350);
+      }
+    }
+  }
+
+  if(data.tick.symbol !== currentWsSymbol) return;
+
+  const price = quotePrice;
+  const epoch = Number(data.tick.epoch);
+  if(!Number.isFinite(price) || !Number.isFinite(epoch)) return;
+
+  lastServerEpoch = epoch;
+
+  if(lastPrice !== null){
+    if(price > lastPrice){
+      triggerPriceFlash("up");
+    } else if(price < lastPrice){
+      triggerPriceFlash("down");
+    }
+  }
+
+  prevPrice = lastPrice;
+  lastPrice = price;
+  if(firstPrice === null) firstPrice = price;
+  updateHeader(price);
+
+  const bucket = Math.floor(epoch / timeframe) * timeframe;
+  if(!currentCandle || currentCandle.time !== bucket){
+    currentCandle = {time: bucket, open: price, high: price, low: price, close: price};
+    candles.push(currentCandle);
+    if(candles.length > MAX_VIEW){ candles.shift(); if(viewStart > 0) viewStart--; }
+    if(autoFollow) positionLatest();
+  } else {
+    currentCandle.close = price;
+    currentCandle.high = Math.max(currentCandle.high, price);
+    currentCandle.low = Math.min(currentCandle.low, price);
+  }
+
+  updateRealtimeTickPL(price);
+
+  if(activeMT5Trade && activeMT5Trade.isLocal){
+    checkLocalTradeExit(price);
+  } else if (isMT5Connected) {
+    checkInstitutionalSetup(price);
+  }
+
+  draw();
+}
+
+function calculateEMA(endIndex, period){
+  if(endIndex < period) return null;
+  const k = 2 / (period + 1);
+  let ema = candles[endIndex - period].close;
+  for(let i = endIndex - period + 1; i <= endIndex; i++){
+    ema = (candles[i].close * k) + (ema * (1 - k));
+  }
+  return ema;
+}
+
+function calculateATR(endIndex, period = 14){
+  if(endIndex < period) return currentMt5Symbol.includes("BTC") ? 45.0 : (currentMt5Symbol.includes("AUD") ? 0.0015 : 1.0);
+  let trSum = 0;
+  for(let i = endIndex - period + 1; i <= endIndex; i++){
+    const cur = candles[i];
+    const prev = candles[i - 1];
+    trSum += Math.max(cur.high - cur.low, Math.abs(cur.high - prev.close), Math.abs(cur.low - prev.close));
+  }
+  return trSum / period;
+}
+
+function calculateRSI(endIndex, period = 14){
+  if(endIndex < period + 1) return 50;
+  let gains = 0, losses = 0;
+  for(let i = endIndex - period + 1; i <= endIndex; i++){
+    const diff = candles[i].close - candles[i-1].close;
+    if(diff >= 0) gains += diff;
+    else losses -= diff;
+  }
+  let avgGain = gains / period;
+  let avgLoss = losses / period;
+  if(avgLoss === 0) return 100;
+  const rs = avgGain / avgLoss;
+  return 100 - (100 / (1 + rs));
+}
+
+function resolveLotSize(atr){
+  const parsed = parseFloat(currentLotSetting);
+  return (Number.isFinite(parsed) && parsed > 0) ? parsed : 0.01;
+}
+
+function evaluateInstitutionalPlan(currentPrice){
+  if(candles.length < 30) return null;
+
+  const lastIndex = candles.length - 1;
+  const c = candles[lastIndex];
+  const atr = calculateATR(lastIndex, 14);
+  const isBtc = currentMt5Symbol.includes("BTC");
+  const isAud = currentMt5Symbol.includes("AUD");
+
+  const ema50 = calculateEMA(lastIndex, 50) || currentPrice;
+  const ema200 = calculateEMA(lastIndex, 200) || ema50;
+  const isBullTrend = ema50 >= ema200;
+
+  let swingHigh = -Infinity;
+  let swingLow = Infinity;
+  for(let i = Math.max(0, lastIndex - 20); i < lastIndex; i++){
+    swingHigh = Math.max(swingHigh, candles[i].high);
+    swingLow = Math.min(swingLow, candles[i].low);
+  }
+
+  const candleRange = Math.max(c.high - c.low, isBtc ? 5.0 : (isAud ? 0.0005 : 0.2));
+  const lowerWickRatio = (Math.min(c.open, c.close) - c.low) / candleRange;
+  const upperWickRatio = (c.high - Math.max(c.open, c.close)) / candleRange;
+  const rsi = calculateRSI(lastIndex, 14);
+
+  let actionType = null;
+  let reason = "";
+
+  if(isBullTrend && (c.low < swingLow || currentPrice <= swingLow) && lowerWickRatio >= 0.40 && rsi < 55){
+    actionType = "bullish";
+    reason = "Bullish Sweep";
+  } else if(!isBullTrend && (c.high > swingHigh || currentPrice >= swingHigh) && upperWickRatio >= 0.40 && rsi > 45){
+    actionType = "bearish";
+    reason = "Bearish Sweep";
+  } else {
+    actionType = currentPrice >= ema50 ? "bullish" : "bearish";
+    reason = actionType === "bullish" ? "EMA Momentum" : "EMA Resistance";
+  }
+
+  const buffer = atr * 0.35;
+  let riskDist = 0;
+  if(actionType === "bullish"){
+    riskDist = Math.max(currentPrice - c.low + buffer, atr * 1.0, isBtc ? 40.0 : (isAud ? 0.0012 : 1.20));
+  } else {
+    riskDist = Math.max(c.high - currentPrice + buffer, atr * 1.0, isBtc ? 40.0 : (isAud ? 0.0012 : 1.20));
+  }
+
+  const rewardDist = riskDist * 1.8;
+  const entry = currentPrice;
+  const spreadBuffer = isBtc ? 8.00 : (isAud ? 0.00015 : 0.35);
+
+  let sl, tp;
+  if(actionType === "bullish"){
+    sl = (entry - riskDist) - spreadBuffer;
+    tp = (entry + rewardDist) + spreadBuffer;
+  } else {
+    sl = (entry + riskDist) + spreadBuffer;
+    tp = (entry - rewardDist) - spreadBuffer;
+  }
+
+  const executionLot = resolveLotSize(atr);
+  const currentTFLabel = getTFLabel(timeframe);
+
+  return {
+    symbol: currentMt5Symbol,
+    type: actionType,
+    entry: entry,
+    tp: tp,
+    sl: sl,
+    volume: executionLot,
+    tf: currentTFLabel,
+    comment: `SYNC ${currentTFLabel}`,
+    reason: reason
+  };
+}
+
+function checkInstitutionalSetup(currentPrice){
+  if (!isMT5Connected || !checkMarketOpen().isOpen) return;
+  if (activeMT5Trade || isExecutingTrade || candles.length < 60) return;
+
+  const plan = evaluateInstitutionalPlan(currentPrice);
+  if (!plan) return;
+
+  if (plan.reason.includes("Sweep")) {
+    executeTrade(plan);
+  }
+}
+
+async function executeTrade(plan){
+  if(!isMT5Connected){
+    deployLocalOrder(plan);
+    return;
+  }
+
+  isExecutingTrade = true;
+  ticketBadgeEl.textContent = "SENDING";
+
+  try {
+    const res = await fetch(`${BRIDGE_API}/trade`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        symbol: plan.symbol,
+        action: plan.type === "bullish" ? "buy" : "sell",
+        volume: plan.volume,
+        sl: Number(plan.sl.toFixed(plan.symbol.includes("AUD") ? 5 : (plan.symbol.includes("BTC") ? 1 : 2))),
+        tp: Number(plan.tp.toFixed(plan.symbol.includes("AUD") ? 5 : (plan.symbol.includes("BTC") ? 1 : 2))),
+        comment: plan.comment
+      })
+    });
+    const data = await res.json();
+
+    if(data.status === "success"){
+      activeMT5Trade = {
+        symbol: plan.symbol,
+        orderId: data.order_id,
+        type: plan.type,
+        entry: data.price,
+        tp: data.tp,
+        sl: data.sl,
+        volume: plan.volume,
+        open_time: data.open_time || Math.floor(Date.now() / 1000),
+        tf: plan.tf,
+        reason: plan.reason,
+        isLocal: false
+      };
+      localStorage.setItem('active_trade_' + plan.symbol, JSON.stringify(activeMT5Trade));
+      renderActiveTrade(activeMT5Trade);
+      showCenterToast(`ORDER #${data.order_id} EXECUTED`, 1800, "info");
+    } else {
+      ticketBadgeEl.textContent = "REJECTED";
+      showCenterToast(`REJECTED: ${data.comment || 'ERROR'}`, 1800, "error");
+      setTimeout(() => { isExecutingTrade = false; showScanning(); }, 2000);
+      return;
+    }
+  } catch(err) {
+    deployLocalOrder(plan);
+  }
+  isExecutingTrade = false;
+}
+
+function deployLocalOrder(plan){
+  const orderId = Math.floor(200000 + Math.random() * 800000);
+  activeMT5Trade = {
+    symbol: plan.symbol,
+    orderId: orderId,
+    type: plan.type,
+    entry: plan.entry,
+    tp: plan.tp,
+    sl: plan.sl,
+    volume: plan.volume,
+    open_time: Math.floor(Date.now() / 1000),
+    tf: plan.tf,
+    reason: plan.reason,
+    isLocal: true
+  };
+
+  localStorage.setItem('active_trade_' + plan.symbol, JSON.stringify(activeMT5Trade));
+  renderActiveTrade(activeMT5Trade);
+  showCenterToast(`LOCAL ORDER #${orderId} DEPLOYED`, 1800, "info");
+  draw();
+}
+
+function checkLocalTradeExit(currentPrice){
+  if(!activeMT5Trade || !activeMT5Trade.isLocal) return;
+
+  const isBuy = activeMT5Trade.type === "bullish";
+  const diff = isBuy ? currentPrice - activeMT5Trade.entry : activeMT5Trade.entry - currentPrice;
+  const multiplier = activeMT5Trade.symbol.includes("BTC") ? 1.0 : (activeMT5Trade.symbol.includes("AUD") ? 10.0 : 100.0);
+  const profit = diff * activeMT5Trade.volume * (activeMT5Trade.symbol.includes("AUD") ? 100000.0 * 0.74 : multiplier);
+
+  const sign = profit >= 0 ? "+" : "";
+  floatingPlEl.textContent = `${sign}$${profit.toFixed(2)}`;
+  floatingPlEl.style.color = profit >= 0 ? "#00897b" : "#e53935";
+
+  let exitHit = false;
+  if(isBuy){
+    if(currentPrice >= activeMT5Trade.tp || currentPrice <= activeMT5Trade.sl) exitHit = true;
+  } else {
+    if(currentPrice <= activeMT5Trade.tp || currentPrice >= activeMT5Trade.sl) exitHit = true;
+  }
+
+  if(exitHit){
+    const isWin = profit >= 0;
+    const outcomeText = isWin ? `TARGET HIT (+${profit.toFixed(2)}$)` : `STOP HIT (${profit.toFixed(2)}$)`;
+    localStorage.removeItem('active_trade_' + currentMt5Symbol);
+    activeMT5Trade = null;
+    showScanning();
+    showCenterToast(outcomeText, 2400, isWin ? "success" : "error");
+    draw();
+  }
+}
+
+function startMT5RealtimeSync(){
+  clearInterval(statusPollTimer);
+
+  statusPollTimer = setInterval(async () => {
+    if(!isMT5Connected) return;
+
+    try {
+      const res = await fetch(`${BRIDGE_API}/open_positions`);
+      const data = await res.json();
+
+      if(data.status === "success" && Array.isArray(data.positions)){
+        const allLivePositions = data.positions;
+        const activeSymbolsInMT5 = new Set();
+
+        allLivePositions.forEach(p => {
+          activeSymbolsInMT5.add(p.symbol);
+          const isBuy = p.type === "BUY";
+          const orderData = {
+            symbol: p.symbol,
+            orderId: p.ticket,
+            type: isBuy ? "bullish" : "bearish",
+            entry: p.open_price,
+            tp: p.tp || 0,
+            sl: p.sl || 0,
+            volume: p.volume,
+            open_time: p.open_time,
+            profit: p.profit,
+            tf: getTFLabel(timeframe),
+            reason: p.comment || "Live Position",
+            isLocal: false
+          };
+          localStorage.setItem('active_trade_' + p.symbol, JSON.stringify(orderData));
+        });
+
+        ["XAUUSDm", "BTCUSDm", "AUDCADm"].forEach(sym => {
+          if (!activeSymbolsInMT5.has(sym)) {
+            const existing = JSON.parse(localStorage.getItem('active_trade_' + sym) || 'null');
+            if (existing && !existing.isLocal) {
+              localStorage.removeItem('active_trade_' + sym);
+            }
+          }
+        });
+
+        const currentLivePos = allLivePositions.find(p => p.symbol === currentMt5Symbol);
+
+        if(currentLivePos){
+          const isBuy = currentLivePos.type === "BUY";
+          const sign = currentLivePos.profit >= 0 ? "+" : "";
+          floatingPlEl.textContent = `${sign}$${currentLivePos.profit.toFixed(2)}`;
+          floatingPlEl.style.color = currentLivePos.profit >= 0 ? "#00897b" : "#e53935";
+
+          const syncedTrade = {
+            symbol: currentLivePos.symbol,
+            orderId: currentLivePos.ticket,
+            type: isBuy ? "bullish" : "bearish",
+            entry: currentLivePos.open_price,
+            tp: currentLivePos.tp || 0,
+            sl: currentLivePos.sl || 0,
+            volume: currentLivePos.volume,
+            open_time: currentLivePos.open_time,
+            tf: activeMT5Trade?.tf || getTFLabel(timeframe),
+            reason: currentLivePos.comment || "Live Position",
+            isLocal: false
+          };
+
+          const isNewOrUpdated = !activeMT5Trade || activeMT5Trade.orderId !== currentLivePos.ticket || Math.abs(activeMT5Trade.tp - currentLivePos.tp) > 0.0001;
+          activeMT5Trade = syncedTrade;
+
+          if(isNewOrUpdated){
+            renderActiveTrade(activeMT5Trade);
+          }
+        } else {
+          if(activeMT5Trade && !activeMT5Trade.isLocal){
+            activeMT5Trade = null;
+            localStorage.removeItem('active_trade_' + currentMt5Symbol);
+            showScanning(true);
+            showCenterToast("POSITION CLOSED IN MT5", 1800, "info");
+            draw();
+          }
+        }
+      }
+    } catch(e){}
+  }, 400);
+}
+
+function renderActiveTrade(trade){
+  const isBuy = trade.type === "bullish";
+  signalEl.textContent = isBuy ? "BUY" : "SELL";
+  signalEl.className = `action-badge ${isBuy ? 'bullish' : 'bearish'}`;
+
+  ticketBadgeEl.textContent = trade.isLocal ? `LOCAL #${trade.orderId}` : `MT5 #${trade.orderId}`;
+  entryEl.textContent = formatPrice(trade.entry);
+  tpEl.textContent = formatPrice(trade.tp);
+  slEl.textContent = formatPrice(trade.sl);
+  panelLotEl.textContent = Number(trade.volume).toFixed(2);
+  orderOpenTimeEl.textContent = formatOrderDateTime(trade.open_time);
+  orderTfEl.textContent = trade.tf ? trade.tf.toUpperCase() : getTFLabel(timeframe).toUpperCase();
+  draw();
+}
+
+function showScanning(force = false){
+  if (activeMT5Trade && !force) return;
+
+  if (!checkMarketOpen().isOpen) {
+    signalEl.textContent = "CLOSED";
+    signalEl.className = "action-badge";
+    ticketBadgeEl.textContent = "SESSION CLOSED";
+  } else {
+    signalEl.textContent = "SCANNING";
+    signalEl.className = "action-badge";
+    ticketBadgeEl.textContent = isMT5Connected ? "AUTO SCAN" : "STANDBY";
+  }
+  entryEl.textContent = "--";
+  tpEl.textContent = "--";
+  slEl.textContent = "--";
+  panelLotEl.textContent = "--";
+  floatingPlEl.textContent = "--";
+  floatingPlEl.style.color = "var(--text-sub)";
+  orderOpenTimeEl.textContent = "--";
+  orderTfEl.textContent = "--";
+}
+
+function updateFooterLabels(){
+  activeSymLabel.textContent = `SYMBOL: ${currentMt5Symbol} | LOT: ${Number(currentLotSetting).toFixed(2)}`;
+}
+
+function applyLotSetting() {
+  let val = parseFloat(lotConfig.value);
+  if (Number.isFinite(val) && val > 0) {
+    currentLotSetting = val.toFixed(2);
+    lotConfig.value = currentLotSetting;
+  } else {
+    currentLotSetting = "0.01";
+    lotConfig.value = "0.01";
+  }
+  updateFooterLabels();
+  showCenterToast(`LOT SIZE SET: ${currentLotSetting}`, 1400, "info");
+}
+
+lotConfig.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    applyLotSetting();
+    lotConfig.blur();
+  }
+});
+
+lotConfig.addEventListener("change", applyLotSetting);
+lotConfig.addEventListener("blur", applyLotSetting);
+
+document.querySelectorAll(".tf").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const newTf = Number(btn.dataset.timeframe);
+    if(timeframe === newTf) return;
+
+    document.querySelectorAll(".tf").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    timeframe = newTf;
+
+    showChartLoader(`TIMEFRAME: ${getTFLabel(timeframe).toUpperCase()}`);
+    requestHistory();
+  });
+});
+
+btnRecoveryAi.addEventListener("click", async () => {
+  let currentPL = 0;
+  let hasPosition = false;
+
+  if (isMT5Connected) {
+    try {
+      const res = await fetch(`${BRIDGE_API}/open_positions`);
+      const data = await res.json();
+      if (data.status === "success" && data.positions) {
+        const symbolPositions = data.positions.filter(p => p.symbol === currentMt5Symbol);
+        if (symbolPositions.length > 0) {
+          hasPosition = true;
+          currentPL = symbolPositions.reduce((acc, p) => acc + p.profit, 0);
+        }
+      }
+    } catch(e) {}
+  }
+
+  if (!hasPosition && activeMT5Trade) {
+    hasPosition = true;
+    const isBuy = activeMT5Trade.type === "bullish";
+    const curP = lastPrice || activeMT5Trade.entry;
+    const diff = isBuy ? curP - activeMT5Trade.entry : activeMT5Trade.entry - curP;
+    const mult = activeMT5Trade.symbol.includes("BTC") ? 1.0 : (activeMT5Trade.symbol.includes("AUD") ? 10.0 : 100.0);
+    currentPL = diff * activeMT5Trade.volume * (activeMT5Trade.symbol.includes("AUD") ? 100000.0 * 0.74 : mult);
+  }
+
+  if (!hasPosition) {
+    showCenterToast("NO POSITION TO RECOVER", 1600, "error");
+    return;
+  }
+
+  if (currentPL >= 0) {
+    showCenterToast("POSITIONS ARE IN PROFIT (NO RECOVERY NEEDED)", 2000, "info");
+    return;
+  }
+
+  requestConfirmation(
+    "AI RECOVERY ENGINE",
+    `Positions in ${currentMt5Symbol} are at a loss ($${currentPL.toFixed(2)}). Initialize AI Hedging & Averaging Recovery Protocol?`,
+    () => {
+      showCenterToast("CALCULATING RECOVERY MATRIX...", 1800, "info");
+      setTimeout(() => {
+        const currentPrice = lastPrice || (currentMt5Symbol.includes("BTC") ? 81500.0 : (currentMt5Symbol.includes("AUD") ? 0.92500 : 2650.0));
+        const atr = calculateATR(candles.length - 1, 14);
+        const recoveryLot = resolveLotSize(atr) * 1.5;
+
+        const isBtc = currentMt5Symbol.includes("BTC");
+        const isAud = currentMt5Symbol.includes("AUD");
+        const hedgeDist = Math.max(isBtc ? 40.0 : (isAud ? 0.0010 : 1.5), atr * 1.2);
+        const recoveryTarget = isBtc ? 120.0 : (isAud ? 0.0030 : 3.5);
+
+        const originalType = activeMT5Trade ? activeMT5Trade.type : "bullish";
+        const recoveryAction = originalType;
+
+        const recoveryPlan = {
+          symbol: currentMt5Symbol,
+          type: recoveryAction,
+          entry: currentPrice,
+          tp: recoveryAction === "bullish" ? currentPrice + recoveryTarget : currentPrice - recoveryTarget,
+          sl: recoveryAction === "bullish" ? currentPrice - hedgeDist : currentPrice + hedgeDist,
+          volume: recoveryLot,
+          tf: getTFLabel(timeframe),
+          comment: "AI RECOVERY HEDGE",
+          reason: "Negative P/L Mitigation Protocol"
+        };
+
+        if (isMT5Connected) {
+          executeRecoveryOrderSafely(recoveryPlan);
+        } else {
+          deployLocalOrder(recoveryPlan);
+          showCenterToast("RECOVERY ORDER DEPLOYED", 2000, "success");
+        }
+      }, 1000);
+    }
+  );
+});
+
+async function executeRecoveryOrderSafely(plan) {
+  try {
+    const res = await fetch(`${BRIDGE_API}/trade`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        symbol: plan.symbol,
+        action: plan.type === "bullish" ? "buy" : "sell",
+        volume: plan.volume,
+        sl: Number(plan.sl.toFixed(plan.symbol.includes("AUD") ? 5 : (plan.symbol.includes("BTC") ? 1 : 2))),
+        tp: Number(plan.tp.toFixed(plan.symbol.includes("AUD") ? 5 : (plan.symbol.includes("BTC") ? 1 : 2))),
+        comment: plan.comment
+      })
+    });
+    const data = await res.json();
+
+    if (data.status === "success") {
+      showCenterToast(`RECOVERY ORDER #${data.order_id} EXECUTED`, 2000, "success");
+    } else {
+      showCenterToast(`RECOVERY REJECTED: ${data.comment || 'ERROR'}`, 2000, "error");
+    }
+  } catch(err) {
+    showCenterToast("RECOVERY BRIDGE ERROR", 1800, "error");
+  }
+}
+
+function jumpToOrder(order) {
+  posModalOverlay.classList.remove("active");
+  clearInterval(positionsModalPollTimer);
+
+  const orderSym = order.symbol || "";
+  const targetWs = orderSym.includes("BTC") ? "cryBTCUSD" : (orderSym.includes("AUD") ? "frxAUDCAD" : "frxXAUUSD");
+  const targetMt5 = orderSym.includes("BTC") ? "BTCUSDm" : (orderSym.includes("AUD") ? "AUDCADm" : "XAUUSDm");
+  
+  const isDifferentSymbol = currentMt5Symbol !== targetMt5;
+  setMarketAssetSelection(targetWs, targetMt5, isDifferentSymbol);
+
+  const entryPrice = order.entry || order.open_price;
+  if (Number.isFinite(entryPrice)) {
+    autoScaleY = false;
+    const isBtc = targetMt5.includes("BTC");
+    const isAud = targetMt5.includes("AUD");
+    const halfSpan = isBtc ? 250.0 : (isAud ? 0.0050 : 6.0);
+    customMinPrice = entryPrice - halfSpan;
+    customMaxPrice = entryPrice + halfSpan;
+  }
+
+  if (order.open_time && candles.length > 0) {
+    let orderIndex = -1;
+    for (let i = 0; i < candles.length; i++) {
+      if (order.open_time >= candles[i].time && order.open_time < candles[i].time + timeframe) {
+        orderIndex = i;
+        break;
+      }
+    }
+
+    if (orderIndex !== -1) {
+      autoFollow = false;
+      viewStart = orderIndex - Math.floor(viewCount / 2);
+    }
+  }
+
+  triggerPriceFlash(order.type.toLowerCase().includes("buy") || order.type === "bullish" ? "up" : "down");
+  draw();
+  showCenterToast(`FOCUSED ON #${order.ticket || order.orderId}`, 1500, "info");
+}
+
+let cachedModalPositions = [];
+
+async function fetchRealtimePositions() {
+  if (!isMT5Connected) {
+    if (activeMT5Trade && activeMT5Trade.isLocal) {
+      const isBuy = activeMT5Trade.type === "bullish";
+      const curP = lastPrice || activeMT5Trade.entry;
+      const diff = isBuy ? curP - activeMT5Trade.entry : activeMT5Trade.entry - curP;
+      const mult = activeMT5Trade.symbol.includes("BTC") ? 1.0 : (activeMT5Trade.symbol.includes("AUD") ? 10.0 : 100.0);
+      const pnl = diff * activeMT5Trade.volume * (activeMT5Trade.symbol.includes("AUD") ? 100000.0 * 0.74 : mult);
+
+      cachedModalPositions = [activeMT5Trade];
+
+      posTableBody.innerHTML = `
+        <tr class="clickable-row" onclick="jumpToOrder(cachedModalPositions[0])" title="Focus order on chart">
+          <td style="text-align:center;"><span class="pos-code-badge">${activeMT5Trade.orderId}</span></td>
+          <td style="text-align:center;">${activeMT5Trade.symbol}</td>
+          <td style="text-align:center;"><span class="pos-type-tag ${isBuy?'buy':'sell'}">${isBuy?'BUY':'SELL'}</span></td>
+          <td style="text-align:center;">${activeMT5Trade.volume.toFixed(2)}</td>
+          <td style="text-align:center;">${formatPrice(activeMT5Trade.entry)}</td>
+          <td style="text-align:center;">${formatPrice(curP)}</td>
+          <td class="pos-pnl-cell" style="text-align:right;color:${pnl>=0?'#0d9488':'#e11d48'}">${pnl>=0?'+':''}${pnl.toFixed(2)}</td>
+        </tr>
+      `;
+      modalPosCount.textContent = "1";
+      modalTotalPnl.textContent = `${pnl>=0?'+':''}$${pnl.toFixed(2)}`;
+      modalTotalPnl.style.color = pnl >= 0 ? "#0d9488" : "#e11d48";
+    } else {
+      cachedModalPositions = [];
+      modalPosCount.textContent = "0";
+      modalTotalPnl.textContent = "$0.00";
+      modalTotalPnl.style.color = "var(--text-main)";
+      posTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-sub);padding:24px;letter-spacing:0.5px;text-transform:uppercase;font-size:10px;">No open positions detected</td></tr>`;
+    }
+    return;
+  }
+
+  try {
+    const res = await fetch(`${BRIDGE_API}/open_positions`);
+    const data = await res.json();
+
+    if (data.status === "success") {
+      const positions = data.positions || [];
+      const totProfit = data.total_profit || 0.0;
+
+      cachedModalPositions = positions;
+      modalPosCount.textContent = positions.length;
+
+      if (positions.length === 0) {
+        modalTotalPnl.textContent = "$0.00";
+        modalTotalPnl.style.color = "var(--text-main)";
+        posTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-sub);padding:24px;letter-spacing:0.5px;text-transform:uppercase;font-size:10px;">No open positions detected</td></tr>`;
+        return;
+      }
+
+      modalTotalPnl.textContent = `${totProfit>=0?'+':''}$${totProfit.toFixed(2)}`;
+      modalTotalPnl.style.color = totProfit >= 0 ? "#0d9488" : "#e11d48";
+
+      let html = "";
+      positions.forEach((p, idx) => {
+        const isBuy = p.type === "BUY";
+        html += `
+          <tr class="clickable-row" onclick="jumpToOrder(cachedModalPositions[${idx}])" title="Focus order on chart">
+            <td style="text-align:center;"><span class="pos-code-badge">${p.ticket}</span></td>
+            <td style="text-align:center;">${p.symbol}</td>
+            <td style="text-align:center;"><span class="pos-type-tag ${isBuy?'buy':'sell'}">${p.type}</span></td>
+            <td style="text-align:center;">${Number(p.volume).toFixed(2)}</td>
+            <td style="text-align:center;">${formatPrice(p.open_price)}</td>
+            <td style="text-align:center;">${formatPrice(p.current_price)}</td>
+            <td class="pos-pnl-cell" style="text-align:right;color:${p.profit>=0?'#0d9488':'#e11d48'}">${p.profit>=0?'+':''}${p.profit.toFixed(2)}</td>
+          </tr>
+        `;
+      });
+      posTableBody.innerHTML = html;
+    }
+  } catch(err) {
+    posTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-sub);padding:24px;letter-spacing:0.5px;text-transform:uppercase;font-size:10px;">Feed offline • Bridge connection error</td></tr>`;
+  }
+}
+
+btnOpenPositionsModal.addEventListener("click", () => {
+  posModalOverlay.classList.add("active");
+  fetchRealtimePositions();
+  clearInterval(positionsModalPollTimer);
+  positionsModalPollTimer = setInterval(fetchRealtimePositions, 400);
+});
+
+posModalClose.addEventListener("click", () => {
+  posModalOverlay.classList.remove("active");
+  clearInterval(positionsModalPollTimer);
+});
+
+posModalOverlay.addEventListener("click", (e) => {
+  if (e.target === posModalOverlay) {
+    posModalOverlay.classList.remove("active");
+    clearInterval(positionsModalPollTimer);
+  }
+});
+
+calcOrderBtn.addEventListener("click", () => {
+  if(activeMT5Trade){
+    showCenterToast("ACTIVE POSITION RUNNING", 1800, "error");
+    return;
+  }
+  requestConfirmation(
+    "EXECUTE CALCULATION",
+    `Analyze structure and calculate order for ${currentMt5Symbol}?`,
+    () => {
+      const currentPrice = lastPrice || (currentMt5Symbol.includes("BTC") ? 81500.0 : (currentMt5Symbol.includes("AUD") ? 0.92500 : 2650.0));
+      const plan = evaluateInstitutionalPlan(currentPrice);
+      if(plan){
+        if(isMT5Connected){
+          executeTrade(plan);
+        } else {
+          deployLocalOrder(plan);
+        }
+      }
+    }
+  );
+});
+
+document.getElementById("btn-clear-order").addEventListener("click", async () => {
+  if(!activeMT5Trade){
+    showCenterToast("NO POSITION ACTIVE", 1600, "error");
+    return;
+  }
+  
+  if(activeMT5Trade.isLocal){
+    requestConfirmation(
+      "TERMINATE POSITION",
+      `Terminate and close Local Order #${activeMT5Trade.orderId}?`,
+      () => {
+        localStorage.removeItem('active_trade_' + currentMt5Symbol);
+        activeMT5Trade = null;
+        showScanning(true);
+        showCenterToast("POSITION TERMINATED", 1600, "info");
+        draw();
+      }
+    );
+    return;
+  }
+
+  requestConfirmation(
+    "CLOSE POSITION",
+    `Close live Order #${activeMT5Trade.orderId} on MT5 terminal immediately?`,
+    async () => {
+      try {
+        await fetch(`${BRIDGE_API}/close_order/${activeMT5Trade.orderId}`, {method: "POST"});
+      } catch(e){}
+      localStorage.removeItem('active_trade_' + currentMt5Symbol);
+      activeMT5Trade = null;
+      showScanning(true);
+      showCenterToast(`ORDER CLOSED ON MT5`, 2000, "info");
+      draw();
+    }
+  );
+});
+
+toggleConnBtn.addEventListener("click", () => {
+  if(isCheckingConnection) return;
+
+  if(isMT5Connected){
+    requestConfirmation(
+      "DISCONNECT BRIDGE",
+      "Terminate connection to local MT5 Bridge server?",
+      () => {
+        isMT5Connected = false;
+        clearInterval(statusPollTimer);
+        toggleConnBtn.querySelector(".btn-text").textContent = "Connect MT5";
+        toggleConnBtn.className = "btn-action btn-toggle-conn state-disconnected";
+        if(!activeMT5Trade) showScanning(true);
+        showCenterToast("MT5 DISCONNECTED", 1600, "info");
+      }
+    );
+  } else {
+    requestConfirmation(
+      "CONNECT BRIDGE",
+      "Establish connection with local MT5 Bridge server?",
+      async () => {
+        isCheckingConnection = true;
+
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+          const res = await fetch(`${BRIDGE_API}/docs`, {
+            method: "GET",
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+
+          if(res.ok || res.status === 200 || res.status === 404){
+            isMT5Connected = true;
+            toggleConnBtn.querySelector(".btn-text").textContent = "Disconnect MT5";
+            toggleConnBtn.className = "btn-action btn-toggle-conn state-connected";
+            showCenterToast("MT5 CONNECTED", 1800, "success");
+            startMT5RealtimeSync();
+          } else {
+            throw new Error("Bridge unresponsive");
+          }
+        } catch(err) {
+          isMT5Connected = false;
+          toggleConnBtn.className = "btn-action btn-toggle-conn state-error-blink";
+          showCenterToast("CONNECTION FAILED", 1800, "error");
+
+          setTimeout(() => {
+            if(!isMT5Connected){
+              toggleConnBtn.className = "btn-action btn-toggle-conn state-disconnected";
+            }
+          }, 1500);
+        } finally {
+          isCheckingConnection = false;
+        }
+      }
+    );
+  }
+});
+
+document.getElementById("reset").addEventListener("click", resetView);
+
+canvas.addEventListener("pointerdown", e => {
+  canvas.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+  if (pointers.size > 1) {
+    isDragging = false;
+    isYScaleDragging = false;
+    e.preventDefault();
+    return;
+  }
+
+  const rect = canvas.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const plot = getPlot();
+  const isRightAxisZone = clickX >= plot.right - 70;
+
+  isDragging = true;
+  dragStartX = e.clientX;
+  dragStartY = e.clientY;
+  dragStartStart = viewStart;
+  dragStartMinPrice = currentMinPrice;
+  dragStartMaxPrice = currentMaxPrice;
+
+  if (currentInteractionMode === 'pc') {
+    if (isRightAxisZone) {
+      isYScaleDragging = true;
+      autoScaleY = false;
+      canvas.style.cursor = 'ns-resize';
+    } else {
+      isYScaleDragging = false;
+      canvas.style.cursor = 'grabbing';
+    }
+  } else {
+    isYScaleDragging = false;
+  }
+
+  e.preventDefault();
+}, { passive: false });
+
+canvas.addEventListener("pointermove", e => {
+  if(!pointers.has(e.pointerId)) return;
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+  if (pointers.size > 1) {
+    isDragging = false;
+    isYScaleDragging = false;
+    e.preventDefault();
+    return;
+  }
+
+  const plot = getPlot();
+
+  if (isDragging) {
+    const dx = e.clientX - dragStartX;
+    const dy = e.clientY - dragStartY;
+
+    if (currentInteractionMode === 'pc' && isYScaleDragging) {
+      const priceSpan = dragStartMaxPrice - dragStartMinPrice;
+      const scaleFactor = 1 + (dy / 250);
+      const newSpan = priceSpan * clamp(scaleFactor, 0.2, 5.0);
+      const centerPrice = (dragStartMinPrice + dragStartMaxPrice) / 2;
+
+      customMinPrice = centerPrice - newSpan / 2;
+      customMaxPrice = centerPrice + newSpan / 2;
+    } else {
+      const candleWidth = plot.width / Math.max(viewCount, 1);
+      viewStart = dragStartStart - (dx / Math.max(candleWidth, 1));
+      autoFollow = false;
+
+      if (dragStartMinPrice && dragStartMaxPrice) {
+        autoScaleY = false;
+        const priceSpan = dragStartMaxPrice - dragStartMinPrice;
+        const plotHeight = canvas.clientHeight - 30;
+        const dPrice = (dy / plotHeight) * priceSpan;
+
+        customMinPrice = dragStartMinPrice + dPrice;
+        customMaxPrice = dragStartMaxPrice + dPrice;
+      }
+    }
+    draw();
+  }
+  e.preventDefault();
+}, { passive: false });
+
+canvas.addEventListener("pointerup", e => {
+  pointers.delete(e.pointerId);
+
+  if (pointers.size > 0) {
+    isDragging = false;
+    isYScaleDragging = false;
+    e.preventDefault();
+    return;
+  }
+
+  if (currentInteractionMode === 'pc') {
+    isDragging = false;
+    isYScaleDragging = false;
+    canvas.style.cursor = 'crosshair';
+  } else {
+    const wasTap = Math.hypot(e.clientX - dragStartX, e.clientY - dragStartY) < 6;
+    isDragging = false;
+
+    if(wasTap && activeMT5Trade){
+      const rect = canvas.getBoundingClientRect();
+      const clickY = e.clientY - rect.top;
+      const top = 12;
+      const bottom = canvas.clientHeight - 18;
+
+      const entryY = priceToY(activeMT5Trade.entry, currentMinPrice, currentMaxPrice, top, bottom);
+      const tpY = priceToY(activeMT5Trade.tp, currentMinPrice, currentMaxPrice, top, bottom);
+      const slY = priceToY(activeMT5Trade.sl, currentMinPrice, currentMaxPrice, top, bottom);
+
+      const hitEntry = Math.abs(clickY - entryY) <= 18;
+      const hitTp = Math.abs(clickY - tpY) <= 18;
+      const hitSl = Math.abs(clickY - slY) <= 18;
+
+      if(hitEntry || hitTp || hitSl){
+        showProjectedPL = !showProjectedPL;
+        draw();
+        e.preventDefault();
+        return;
+      }
+    }
+  }
+  e.preventDefault();
+}, { passive: false });
+
+canvas.addEventListener("pointercancel", e => {
+  pointers.delete(e.pointerId);
+  isDragging = false;
+  isYScaleDragging = false;
+  e.preventDefault();
+}, { passive: false });
+
+canvas.addEventListener("mousemove", e => {
+  const rect = canvas.getBoundingClientRect();
+  mouseX = e.clientX - rect.left;
+  mouseY = e.clientY - rect.top;
+
+  if (currentInteractionMode === 'pc' && !isDragging) {
+    const plot = getPlot();
+    if (mouseX >= plot.right - 70) {
+      canvas.style.cursor = 'ns-resize';
+    } else {
+      canvas.style.cursor = 'crosshair';
+    }
+  }
+  draw();
+});
+
+canvas.addEventListener("mouseleave", () => {
+  mouseX = null;
+  mouseY = null;
+  draw();
+});
+
+canvas.addEventListener("wheel", e => {
+  if(!candles.length) return;
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  const plot = getPlot();
+
+  const ratioX = clamp((x - plot.left) / plot.width, 0, 1);
+  const anchorX = viewStart + ratioX * viewCount;
+  const zoom = e.deltaY > 0 ? 1.12 : 0.89;
+
+  if (currentInteractionMode === 'pc' && x >= plot.right - 70) {
+    autoScaleY = false;
+    const priceSpan = currentMaxPrice - currentMinPrice;
+    const top = 12;
+    const bottom = canvas.clientHeight - 18;
+    const ratioY = clamp((bottom - y) / (bottom - top), 0, 1);
+    const centerPrice = currentMinPrice + ratioY * priceSpan;
+    const newSpan = priceSpan * zoom;
+    customMinPrice = centerPrice - (ratioY * newSpan);
+    customMaxPrice = centerPrice + ((1 - ratioY) * newSpan);
+    draw();
+    return;
+  }
+
+  viewCount = clamp(Math.round(viewCount * zoom), MIN_VIEW, MAX_VIEW);
+  viewStart = anchorX - ratioX * viewCount;
+  autoFollow = false;
+
+  if(!autoScaleY && customMinPrice !== null && customMaxPrice !== null){
+    const priceSpan = customMaxPrice - customMinPrice;
+    const top = 12;
+    const bottom = canvas.clientHeight - 18;
+    const ratioY = clamp((bottom - y) / (bottom - top), 0, 1);
+    const centerPrice = customMinPrice + ratioY * priceSpan;
+    const newSpan = priceSpan * zoom;
+    customMinPrice = centerPrice - (ratioY * newSpan);
+    customMaxPrice = centerPrice + ((1 - ratioY) * newSpan);
+  }
+
+  draw();
+}, { passive: false });
+
+function priceToY(price, minPrice, maxPrice, top, bottom){
+  const span = Math.max(maxPrice - minPrice, .000001);
+  return bottom - ((price - minPrice) / span) * (bottom - top);
+}
+
+function drawOrderArrow(trade, plot, candleWidth, top, bottom){
+  if(!trade || !candles.length || !trade.open_time) return;
+
+  let targetIndex = -1;
+  for(let i = 0; i < candles.length; i++){
+    if(trade.open_time >= candles[i].time && trade.open_time < candles[i].time + timeframe){
+      targetIndex = i;
+      break;
+    }
+  }
+  if(targetIndex === -1) return;
+
+  const centerX = Math.round(plot.left + (targetIndex - viewStart + 0.5) * candleWidth) + 0.5;
+  if(centerX < plot.left - 20 || centerX > plot.right + 20) return;
+
+  const targetCandle = candles[targetIndex];
+  const isBuy = trade.type === "bullish";
+  const arrowColor = "#eab308";
+
+  let tipY;
+  if(isBuy){
+    tipY = priceToY(targetCandle.low, currentMinPrice, currentMaxPrice, top, bottom) + 5;
+  } else {
+    tipY = priceToY(targetCandle.high, currentMinPrice, currentMaxPrice, top, bottom) - 5;
+  }
+
+  const headW = 10;
+  const headH = 8;
+  const stemW = 3;
+  const stemH = 10;
+
+  ctx.save();
+  ctx.fillStyle = arrowColor;
+
+  ctx.beginPath();
+  if(isBuy){
+    ctx.moveTo(centerX, tipY);
+    ctx.lineTo(centerX - headW / 2, tipY + headH);
+    ctx.lineTo(centerX - stemW / 2, tipY + headH);
+    ctx.lineTo(centerX - stemW / 2, tipY + headH + stemH);
+    ctx.lineTo(centerX + stemW / 2, tipY + headH + stemH);
+    ctx.lineTo(centerX + stemW / 2, tipY + headH);
+    ctx.lineTo(centerX + headW / 2, tipY + headH);
+  } else {
+    ctx.moveTo(centerX, tipY);
+    ctx.lineTo(centerX - headW / 2, tipY - headH);
+    ctx.lineTo(centerX - stemW / 2, tipY - headH);
+    ctx.lineTo(centerX - stemW / 2, tipY - headH - stemH);
+    ctx.lineTo(centerX + stemW / 2, tipY - headH - stemH);
+    ctx.lineTo(centerX + stemW / 2, tipY - headH);
+    ctx.lineTo(centerX + headW / 2, tipY - headH);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawPlanLine(price, label, top, bottom, left, right, projectedText = null, isUpperLine = true){
+  if(!Number.isFinite(price) || price === 0) return;
+  const y = priceToY(price, currentMinPrice, currentMaxPrice, top, bottom);
+  if(y < top || y > bottom) return;
+
+  const color = label === "ENTRY" ? "#64748b" : (label === "TP" ? "#00897b" : "#e53935");
+  const badgeWidth = 84;
+  const badgeHeight = 18;
+
+  ctx.save();
+  ctx.setLineDash([5, 4]);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = label === "ENTRY" ? 1.4 : 1.1;
+  ctx.beginPath();
+  ctx.moveTo(left, y);
+  ctx.lineTo(right, y);
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.roundRect(left, y - (badgeHeight / 2), badgeWidth, badgeHeight, 3);
+  ctx.fill();
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 9px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText(`${label} ${formatPrice(price)}`, left + (badgeWidth / 2), y + 3.5);
+  ctx.restore();
+
+  const shouldShowEst = (currentInteractionMode === 'pc') || showProjectedPL;
+  if(projectedText && shouldShowEst){
+    ctx.save();
+    const projColor = label === "TP" ? "#00897b" : "#e53935";
+    ctx.fillStyle = projColor;
+    ctx.font = "bold 10px Arial";
+    ctx.textAlign = "right";
+
+    const textX = right - 12;
+    const textY = isUpperLine ? (y - 7) : (y + 15);
+    ctx.fillText(projectedText, textX, textY);
+    ctx.restore();
+  }
+}
+
+function drawPlanBadgeOnly(price, label, top, bottom, left){
+  if(!Number.isFinite(price) || price === 0) return;
+  const y = priceToY(price, currentMinPrice, currentMaxPrice, top, bottom);
+  if(y < top || y > bottom) return;
+
+  const color = label === "ENTRY" ? "#64748b" : (label === "TP" ? "#00897b" : "#e53935");
+  const badgeWidth = 84;
+  const badgeHeight = 18;
+
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.roundRect(left, y - (badgeHeight / 2), badgeWidth, badgeHeight, 3);
+  ctx.fill();
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 9px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText(`${label} ${formatPrice(price)}`, left + (badgeWidth / 2), y + 3.5);
+  ctx.restore();
+}
+
+function draw(){
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+  if(width <= 0 || height <= 0) return;
+
+  ctx.clearRect(0, 0, width, height);
+
+  ctx.fillStyle = lerpColor(COLOR_LIGHT_BG, COLOR_DARK_BG, canvasThemeProgress);
+  ctx.fillRect(0, 0, width, height);
+
+  const plot = getPlot();
+  const top = 12;
+  const bottom = height - 18;
+
+  if(!candles.length) return;
+
+  const start = Math.max(0, Math.floor(viewStart));
+  const end = Math.min(candles.length, Math.ceil(viewStart + viewCount) + 1);
+  const visible = candles.slice(start, end);
+
+  let minPrice = Infinity;
+  let maxPrice = -Infinity;
+  visible.forEach(c => {
+    minPrice = Math.min(minPrice, c.low);
+    maxPrice = Math.max(maxPrice, c.high);
+  });
+
+  const pad = Math.max(maxPrice - minPrice, .000001) * .08;
+  if(autoScaleY || customMinPrice === null){
+    currentMinPrice = minPrice - pad;
+    currentMaxPrice = maxPrice + pad;
+  } else {
+    currentMinPrice = customMinPrice;
+    currentMaxPrice = customMaxPrice;
+  }
+
+  const candleWidth = plot.width / Math.max(viewCount, 1);
+  let rawBodyWidth = candleWidth * 0.65;
+  let bodyWidth = Math.max(2, Math.round(rawBodyWidth));
+  if (bodyWidth % 2 !== 0 && bodyWidth > 2) {
+    bodyWidth -= 1;
+  }
+
+  visible.forEach((c, i) => {
+    const rawX = plot.left + (start + i - viewStart + 0.5) * candleWidth;
+    if(rawX < plot.left - candleWidth || rawX > plot.right + candleWidth) return;
+
+    const centerX = Math.round(rawX) + 0.5;
+
+    const yo = priceToY(c.open, currentMinPrice, currentMaxPrice, top, bottom);
+    const yc = priceToY(c.close, currentMinPrice, currentMaxPrice, top, bottom);
+    const yh = priceToY(c.high, currentMinPrice, currentMaxPrice, top, bottom);
+    const yl = priceToY(c.low, currentMinPrice, currentMaxPrice, top, bottom);
+
+    const bull = c.close >= c.open;
+    const color = bull ? "#00897b" : "#e53935";
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 1;
+
+    ctx.beginPath();
+    ctx.moveTo(centerX, Math.round(yh));
+    ctx.lineTo(centerX, Math.round(yl));
+    ctx.stroke();
+
+    const bodyLeft = centerX - (bodyWidth / 2);
+    const bodyTop = Math.min(yo, yc);
+    const bodyHeight = Math.max(1, Math.abs(yc - yo));
+    ctx.fillRect(bodyLeft, bodyTop, bodyWidth, bodyHeight);
+  });
+
+  let latestCandleX = null;
+  if(candles.length){
+    const latestIndex = candles.length - 1;
+    const latestRawX = plot.left + (latestIndex - viewStart + 0.5) * candleWidth;
+    const latestCenterX = Math.round(latestRawX) + 0.5;
+    latestCandleX = latestCenterX;
+
+    if(latestCenterX >= plot.left && latestCenterX <= plot.right){
+      const highY = priceToY(candles[latestIndex].high, currentMinPrice, currentMaxPrice, top, bottom);
+      const lowY = priceToY(candles[latestIndex].low, currentMinPrice, currentMaxPrice, top, bottom);
+      ctx.strokeStyle = lerpColor([148,163,184], [50,50,50], canvasThemeProgress);
+      ctx.lineWidth = 1;
+      ctx.strokeRect(latestCenterX - (bodyWidth / 2) - 2, highY - 2, bodyWidth + 4, Math.max(4, lowY - highY + 4));
+    }
+  }
+
+  if(activeMT5Trade){
+    const isBuy = activeMT5Trade.type === "bullish";
+    const multiplier = activeMT5Trade.symbol.includes("BTC") ? 1.0 : (activeMT5Trade.symbol.includes("AUD") ? 10.0 : 100.0);
+    const vol = activeMT5Trade.volume || 0.01;
+
+    const tpDiff = isBuy ? (activeMT5Trade.tp - activeMT5Trade.entry) : (activeMT5Trade.entry - activeMT5Trade.tp);
+    const slDiff = isBuy ? (activeMT5Trade.entry - activeMT5Trade.sl) : (activeMT5Trade.sl - activeMT5Trade.entry);
+
+    const projectedTPDollars = activeMT5Trade.tp ? `Est. Profit: +$${(tpDiff * vol * (activeMT5Trade.symbol.includes("AUD") ? 100000.0 * 0.74 : multiplier)).toFixed(2)}` : null;
+    const projectedSLDollars = activeMT5Trade.sl ? `Est. Risk: -$${(slDiff * vol * (activeMT5Trade.symbol.includes("AUD") ? 100000.0 * 0.74 : multiplier)).toFixed(2)}` : null;
+
+    const isTpAbove = activeMT5Trade.tp >= activeMT5Trade.sl;
+
+    drawPlanLine(activeMT5Trade.entry, "ENTRY", top, bottom, plot.left, plot.right);
+    if(activeMT5Trade.tp) drawPlanLine(activeMT5Trade.tp, "TP", top, bottom, plot.left, plot.right, projectedTPDollars, isTpAbove);
+    if(activeMT5Trade.sl) drawPlanLine(activeMT5Trade.sl, "SL", top, bottom, plot.left, plot.right, projectedSLDollars, !isTpAbove);
+    drawOrderArrow(activeMT5Trade, plot, candleWidth, top, bottom);
+  }
+
+  if(Number.isFinite(lastPrice)){
+    const y = priceToY(lastPrice, currentMinPrice, currentMaxPrice, top, bottom);
+    if(y >= top && y <= bottom){
+      const defaultLineColor = lerpColor([148,163,184], [255,255,255], canvasThemeProgress);
+
+      ctx.save();
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = priceFlashColor || defaultLineColor;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(plot.left, y);
+      ctx.lineTo(plot.right, y);
+      ctx.stroke();
+      ctx.restore();
+
+      const countdownText = getCountdownText();
+      if(countdownText && latestCandleX !== null){
+        const cdBadgeX = latestCandleX + (bodyWidth / 2) + 8;
+        const cdWidth = 46;
+        const cdHeight = 15;
+
+        if(cdBadgeX + cdWidth < plot.right - 80){
+          ctx.fillStyle = lerpColor([15,23,42], [255,255,255], canvasThemeProgress);
+          ctx.beginPath();
+          ctx.roundRect(cdBadgeX, y - (cdHeight / 2), cdWidth, cdHeight, 3);
+          ctx.fill();
+
+          ctx.fillStyle = lerpColor([255,255,255], [0,0,0], canvasThemeProgress);
+          ctx.font = "bold 9px Arial";
+          ctx.textAlign = "center";
+          ctx.fillText(countdownText, cdBadgeX + (cdWidth / 2), y + 3);
+        }
+      }
+
+      const defaultBadgeBg = lerpColor([15,23,42], [255,255,255], canvasThemeProgress);
+      const badgeBg = priceFlashColor || defaultBadgeBg;
+      const priceText = formatPrice(lastPrice);
+      const badgeW = currentMt5Symbol.includes("AUD") ? 86 : 76;
+      const badgeH = 18;
+
+      ctx.fillStyle = badgeBg;
+      ctx.beginPath();
+      ctx.roundRect(plot.right - badgeW, y - (badgeH / 2), badgeW, badgeH, 3);
+      ctx.fill();
+
+      if(priceFlashColor){
+        ctx.fillStyle = "#ffffff";
+      } else {
+        ctx.fillStyle = lerpColor([255,255,255], [0,0,0], canvasThemeProgress);
+      }
+      ctx.font = "bold 10px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText(priceText, plot.right - (badgeW / 2), y + 3.5);
+    }
+  }
+
+  if(activeMT5Trade){
+    drawPlanBadgeOnly(activeMT5Trade.entry, "ENTRY", top, bottom, plot.left);
+    if(activeMT5Trade.tp) drawPlanBadgeOnly(activeMT5Trade.tp, "TP", top, bottom, plot.left);
+    if(activeMT5Trade.sl) drawPlanBadgeOnly(activeMT5Trade.sl, "SL", top, bottom, plot.left);
+  }
+
+  if(mouseX !== null && mouseY !== null && mouseX >= plot.left && mouseX <= plot.right && mouseY >= top && mouseY <= bottom){
+    ctx.save();
+    ctx.setLineDash([3, 3]);
+    ctx.strokeStyle = lerpColor([203,213,225], [40,40,40], canvasThemeProgress);
+    ctx.beginPath(); ctx.moveTo(plot.left, mouseY); ctx.lineTo(plot.right, mouseY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(mouseX, top); ctx.lineTo(mouseX, bottom); ctx.stroke();
+    ctx.restore();
+
+    const crossPrice = currentMaxPrice - ((mouseY - top) / (bottom - top)) * (currentMaxPrice - currentMinPrice);
+    const labelWidth = 78;
+    ctx.fillStyle = lerpColor([30,41,59], [26,26,26], canvasThemeProgress);
+    ctx.beginPath();
+    ctx.roundRect(plot.right - labelWidth, mouseY - 9, labelWidth, 18, 3);
+    ctx.fill();
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "9px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(formatPrice(crossPrice), plot.right - labelWidth / 2, mouseY + 3);
+  }
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    showChartLoader("RE-SYNCHRONIZING FEED");
+    requestHistory();
+  }
+});
+
+window.addEventListener("focus", () => {
+  if (!candles || candles.length === 0) {
+    showChartLoader("RE-ESTABLISHING FEED");
+    requestHistory();
+  }
+});
+
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+applyTheme(currentTheme, false);
+applyInteractionMode(currentInteractionMode, false);
+connect();
+updateMarketStatusDisplay();
+
+setInterval(updateMarketStatusDisplay, 10000);
+setInterval(draw, 1000);
+</script>
+</body>
+</html>
