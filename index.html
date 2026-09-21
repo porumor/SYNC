@@ -1128,8 +1128,6 @@ let currentMt5Symbol = "XAUUSDm";
 let currentLotSetting = "0.01";
 
 const WS_URL = "wss://api.derivws.com/trading/v1/options/ws/public";
-
-// เชื่อมต่อไปยัง Cloudflare Tunnel ล่าสุดที่คุณรันสำเร็จ
 const BRIDGE_API = "https://objectives-numerical-undergraduate-ross.trycloudflare.com";
 
 let ws = null;
@@ -1405,7 +1403,11 @@ function getTFLabel(seconds){
 
 function formatOrderDateTime(epoch){
   if(!epoch) return "--";
-  const d = new Date(epoch * 1000);
+  let ts = Number(epoch);
+  if (isNaN(ts) || ts <= 0) return "--";
+  if (ts < 10000000000) ts *= 1000;
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return "--";
   const pad = n => String(n).padStart(2, "0");
   return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
@@ -1667,8 +1669,10 @@ function handleHistory(data){
     prevPrice = lastPrice;
     updateHeader(lastPrice);
 
-    pricesCache[currentWsSymbol].open = firstPrice;
-    pricesCache[currentWsSymbol].last = lastPrice;
+    if (pricesCache[currentWsSymbol]) {
+      pricesCache[currentWsSymbol].open = firstPrice;
+      pricesCache[currentWsSymbol].last = lastPrice;
+    }
 
     viewCount = Math.min(calculateFitCount(), candles.length);
     autoFollow = true;
@@ -1952,7 +1956,7 @@ async function executeTrade(plan){
         tp: data.tp,
         sl: data.sl,
         volume: plan.volume,
-        open_time: data.open_time || Math.floor(Date.now() / 1000),
+        open_time: Number(data.open_time) || Math.floor(Date.now() / 1000),
         tf: plan.tf,
         reason: plan.reason,
         isLocal: false
@@ -2008,9 +2012,11 @@ function checkLocalTradeExit(currentPrice){
 
   let exitHit = false;
   if(isBuy){
-    if(currentPrice >= activeMT5Trade.tp || currentPrice <= activeMT5Trade.sl) exitHit = true;
+    if(activeMT5Trade.tp && currentPrice >= activeMT5Trade.tp) exitHit = true;
+    else if(activeMT5Trade.sl && currentPrice <= activeMT5Trade.sl) exitHit = true;
   } else {
-    if(currentPrice <= activeMT5Trade.tp || currentPrice >= activeMT5Trade.sl) exitHit = true;
+    if(activeMT5Trade.tp && currentPrice <= activeMT5Trade.tp) exitHit = true;
+    else if(activeMT5Trade.sl && currentPrice >= activeMT5Trade.sl) exitHit = true;
   }
 
   if(exitHit){
@@ -2018,7 +2024,7 @@ function checkLocalTradeExit(currentPrice){
     const outcomeText = isWin ? `TARGET HIT (+${profit.toFixed(2)}$)` : `STOP HIT (${profit.toFixed(2)}$)`;
     localStorage.removeItem('active_trade_' + currentMt5Symbol);
     activeMT5Trade = null;
-    showScanning();
+    showScanning(true);
     showCenterToast(outcomeText, 2400, isWin ? "success" : "error");
     draw();
   }
@@ -2041,17 +2047,18 @@ function startMT5RealtimeSync(){
         allLivePositions.forEach(p => {
           activeSymbolsInMT5.add(p.symbol);
           const isBuy = p.type === "BUY";
+          const prevTrade = JSON.parse(localStorage.getItem('active_trade_' + p.symbol) || 'null');
           const orderData = {
             symbol: p.symbol,
             orderId: p.ticket,
             type: isBuy ? "bullish" : "bearish",
-            entry: p.open_price,
-            tp: p.tp || 0,
-            sl: p.sl || 0,
-            volume: p.volume,
-            open_time: p.open_time,
-            profit: p.profit,
-            tf: getTFLabel(timeframe),
+            entry: Number(p.open_price),
+            tp: Number(p.tp) || 0,
+            sl: Number(p.sl) || 0,
+            volume: Number(p.volume),
+            open_time: Number(p.open_time) || (prevTrade ? prevTrade.open_time : Math.floor(Date.now() / 1000)),
+            profit: Number(p.profit),
+            tf: prevTrade ? prevTrade.tf : getTFLabel(timeframe),
             reason: p.comment || "Live Position",
             isLocal: false
           };
@@ -2072,18 +2079,20 @@ function startMT5RealtimeSync(){
         if(currentLivePos){
           const isBuy = currentLivePos.type === "BUY";
           const sign = currentLivePos.profit >= 0 ? "+" : "";
-          floatingPlEl.textContent = `${sign}$${currentLivePos.profit.toFixed(2)}`;
+          floatingPlEl.textContent = `${sign}$${Number(currentLivePos.profit).toFixed(2)}`;
           floatingPlEl.style.color = currentLivePos.profit >= 0 ? "#00897b" : "#e53935";
+
+          const preservedOpenTime = Number(currentLivePos.open_time) || (activeMT5Trade ? activeMT5Trade.open_time : Math.floor(Date.now() / 1000));
 
           const syncedTrade = {
             symbol: currentLivePos.symbol,
             orderId: currentLivePos.ticket,
             type: isBuy ? "bullish" : "bearish",
-            entry: currentLivePos.open_price,
-            tp: currentLivePos.tp || 0,
-            sl: currentLivePos.sl || 0,
-            volume: currentLivePos.volume,
-            open_time: currentLivePos.open_time,
+            entry: Number(currentLivePos.open_price),
+            tp: Number(currentLivePos.tp) || 0,
+            sl: Number(currentLivePos.sl) || 0,
+            volume: Number(currentLivePos.volume),
+            open_time: preservedOpenTime,
             tf: activeMT5Trade?.tf || getTFLabel(timeframe),
             reason: currentLivePos.comment || "Live Position",
             isLocal: false
@@ -2110,14 +2119,15 @@ function startMT5RealtimeSync(){
 }
 
 function renderActiveTrade(trade){
+  if (!trade) return;
   const isBuy = trade.type === "bullish";
   signalEl.textContent = isBuy ? "BUY" : "SELL";
   signalEl.className = `action-badge ${isBuy ? 'bullish' : 'bearish'}`;
 
   ticketBadgeEl.textContent = trade.isLocal ? `LOCAL #${trade.orderId}` : `MT5 #${trade.orderId}`;
   entryEl.textContent = formatPrice(trade.entry);
-  tpEl.textContent = formatPrice(trade.tp);
-  slEl.textContent = formatPrice(trade.sl);
+  tpEl.textContent = trade.tp ? formatPrice(trade.tp) : "--";
+  slEl.textContent = trade.sl ? formatPrice(trade.sl) : "--";
   panelLotEl.textContent = Number(trade.volume).toFixed(2);
   orderOpenTimeEl.textContent = formatOrderDateTime(trade.open_time);
   orderTfEl.textContent = trade.tf ? trade.tf.toUpperCase() : getTFLabel(timeframe).toUpperCase();
@@ -2314,10 +2324,14 @@ function jumpToOrder(order) {
 
   if (order.open_time && candles.length > 0) {
     let orderIndex = -1;
+    let minDiff = Infinity;
+    const orderSec = Number(order.open_time) > 10000000000 ? Math.floor(order.open_time / 1000) : Number(order.open_time);
+
     for (let i = 0; i < candles.length; i++) {
-      if (order.open_time >= candles[i].time && order.open_time < candles[i].time + timeframe) {
+      const diff = Math.abs(candles[i].time - orderSec);
+      if (diff < minDiff) {
+        minDiff = diff;
         orderIndex = i;
-        break;
       }
     }
 
@@ -2401,7 +2415,7 @@ async function fetchRealtimePositions() {
             <td style="text-align:center;">${Number(p.volume).toFixed(2)}</td>
             <td style="text-align:center;">${formatPrice(p.open_price)}</td>
             <td style="text-align:center;">${formatPrice(p.current_price)}</td>
-            <td class="pos-pnl-cell" style="text-align:right;color:${p.profit>=0?'#0d9488':'#e11d48'}">${p.profit>=0?'+':''}${p.profit.toFixed(2)}</td>
+            <td class="pos-pnl-cell" style="text-align:right;color:${p.profit>=0?'#0d9488':'#e11d48'}">${p.profit>=0?'+':''}${Number(p.profit).toFixed(2)}</td>
           </tr>
         `;
       });
@@ -2757,21 +2771,35 @@ function priceToY(price, minPrice, maxPrice, top, bottom){
   return bottom - ((price - minPrice) / span) * (bottom - top);
 }
 
+// ปรับปรุงการวาดลูกศรเพื่อไม่ให้ลูกศรหายแม้เวลาของเซิร์ฟเวอร์จะมีความคลาดเคลื่อน
 function drawOrderArrow(trade, plot, candleWidth, top, bottom){
   if(!trade || !candles.length || !trade.open_time) return;
 
+  let orderSec = Number(trade.open_time);
+  if (orderSec > 10000000000) orderSec = Math.floor(orderSec / 1000);
+
   let targetIndex = -1;
+  let minDiff = Infinity;
+
+  // ค้นหาแท่งเทียนที่ตรงหรือใกล้เคียงกับเวลาเปิดออเดอร์ที่สุด
   for(let i = 0; i < candles.length; i++){
-    if(trade.open_time >= candles[i].time && trade.open_time < candles[i].time + timeframe){
+    if(orderSec >= candles[i].time && orderSec < candles[i].time + timeframe){
       targetIndex = i;
       break;
     }
+    const diff = Math.abs(candles[i].time - orderSec);
+    if(diff < minDiff){
+      minDiff = diff;
+      targetIndex = i;
+    }
   }
+
   if(targetIndex === -1) return;
 
-  const centerX = Math.round(plot.left + (targetIndex - viewStart + 0.5) * candleWidth) + 0.5;
-  if(centerX < plot.left - 20 || centerX > plot.right + 20) return;
+  const rawX = plot.left + (targetIndex - viewStart + 0.5) * candleWidth;
+  if(rawX < plot.left - 20 || rawX > plot.right + 20) return;
 
+  const centerX = Math.round(rawX) + 0.5;
   const targetCandle = candles[targetIndex];
   const isBuy = trade.type === "bullish";
   const arrowColor = "#eab308";
